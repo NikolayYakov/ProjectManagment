@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ProjectManagment.Areas.Identity.Data;
+using ProjectManagment.Data;
 namespace ProjectManagment
 {
     public class Program

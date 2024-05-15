@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ProjectManagment.Migrations
 {
     /// <inheritdoc />
-    public partial class InitApplicationUser : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -30,7 +30,7 @@ namespace ProjectManagment.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    UserName = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -156,6 +156,77 @@ namespace ProjectManagment.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Projects",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    OwnerId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Projects", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Projects_AspNetUsers_OwnerId",
+                        column: x => x.OwnerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Issues",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Body = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ProjectId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OwnerId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Issues", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Issues_AspNetUsers_OwnerId",
+                        column: x => x.OwnerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Issues_Projects_ProjectId",
+                        column: x => x.ProjectId,
+                        principalTable: "Projects",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Comments",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AuthorId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    IssueId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Comments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Comments_AspNetUsers_AuthorId",
+                        column: x => x.AuthorId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Comments_Issues_IssueId",
+                        column: x => x.IssueId,
+                        principalTable: "Issues",
+                        principalColumn: "Id");
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -194,6 +265,31 @@ namespace ProjectManagment.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Comments_AuthorId",
+                table: "Comments",
+                column: "AuthorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Comments_IssueId",
+                table: "Comments",
+                column: "IssueId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Issues_OwnerId",
+                table: "Issues",
+                column: "OwnerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Issues_ProjectId",
+                table: "Issues",
+                column: "ProjectId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Projects_OwnerId",
+                table: "Projects",
+                column: "OwnerId");
         }
 
         /// <inheritdoc />
@@ -215,7 +311,16 @@ namespace ProjectManagment.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "Comments");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "Issues");
+
+            migrationBuilder.DropTable(
+                name: "Projects");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
