@@ -17,7 +17,15 @@ namespace ProjectManagment.Data
         public string OwnerId { get; set; }
         public ICollection<Comment> Comments { get; set; }
         public Milestone Milestone { get; set; }
-        public int MilestoneId { get; set; }
+        [ForeignKey("MilestoneId")]
+        public Guid MilestoneId { get; set; }
+        public Status Status { get; set; }
+        [ForeignKey("StatusId")]
+        public Guid StatusId{ get; set; }
+        public Area Area { get; set; }
+        [ForeignKey("AreaId")]
+        public Guid AreaId { get; set; }
         public List<Label> Labels { get; set; }
+        public bool isDeleted { get; set; } = false;
     }
 }

@@ -21,8 +21,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Comment> Comments { get; set; }
     public DbSet<Milestone> Milestones { get; set; }
     public DbSet<Label> Labels { get; set; }
+    public DbSet<Area> Areas { get; set; }
+    public DbSet<Status> Status { get; set; }
     public DbSet<LabelsToIssues> LabelsToIssues { get; set; }
-
+    public DbSet<ProjectsToMembers> ProjectsToMembers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -49,8 +51,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         .OnDelete(DeleteBehavior.NoAction)
         .HasPrincipalKey(e => e.Id);
 
+        builder.Entity<Project>()
+      .HasMany(e => e.Statuses)
+      .WithOne(e => e.Project)
+      .HasForeignKey(e => e.ProjectId)
+      .OnDelete(DeleteBehavior.NoAction)
+      .HasPrincipalKey(e => e.Id);
+
         builder.Entity<ApplicationUser>()
-        .HasMany(e => e.Projects)
+        .HasMany(e => e.ProjectsJoined)
         .WithOne(e => e.Owner)
         .HasForeignKey(e => e.OwnerId)
         .OnDelete(DeleteBehavior.NoAction)

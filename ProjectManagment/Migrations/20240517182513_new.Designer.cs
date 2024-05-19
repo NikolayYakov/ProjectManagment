@@ -12,8 +12,8 @@ using ProjectManagment.Data;
 namespace ProjectManagment.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240428195418_Initial")]
-    partial class Initial
+    [Migration("20240517182513_new")]
+    partial class @new
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,36 @@ namespace ProjectManagment.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("ApplicationUserProject", b =>
+                {
+                    b.Property<string>("MembersId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("ProjectsOwnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("MembersId", "ProjectsOwnerId");
+
+                    b.HasIndex("ProjectsOwnerId");
+
+                    b.ToTable("ApplicationUserProject");
+                });
+
+            modelBuilder.Entity("IssueLabel", b =>
+                {
+                    b.Property<Guid>("IssuesId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("LabelsId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("IssuesId", "LabelsId");
+
+                    b.HasIndex("LabelsId");
+
+                    b.ToTable("IssueLabel");
+                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
@@ -227,6 +257,29 @@ namespace ProjectManagment.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("ProjectManagment.Data.Area", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("Areas");
+                });
+
             modelBuilder.Entity("ProjectManagment.Data.Comment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -244,6 +297,9 @@ namespace ProjectManagment.Migrations
                     b.Property<Guid>("IssueId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");
@@ -259,9 +315,15 @@ namespace ProjectManagment.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("AreaId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Body")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("MilestoneId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("OwnerId")
                         .IsRequired()
@@ -270,17 +332,96 @@ namespace ProjectManagment.Migrations
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("StatusId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("AreaId");
+
+                    b.HasIndex("MilestoneId");
 
                     b.HasIndex("OwnerId");
 
                     b.HasIndex("ProjectId");
 
+                    b.HasIndex("StatusId");
+
                     b.ToTable("Issues");
+                });
+
+            modelBuilder.Entity("ProjectManagment.Data.Label", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("Labels");
+                });
+
+            modelBuilder.Entity("ProjectManagment.Data.LabelsToIssues", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("IssueId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("LabelId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IssueId");
+
+                    b.HasIndex("LabelId");
+
+                    b.ToTable("LabelsToIssues");
+                });
+
+            modelBuilder.Entity("ProjectManagment.Data.Milestone", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("Milestones");
                 });
 
             modelBuilder.Entity("ProjectManagment.Data.Project", b =>
@@ -301,11 +442,89 @@ namespace ProjectManagment.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
                     b.HasKey("Id");
 
                     b.HasIndex("OwnerId");
 
                     b.ToTable("Projects");
+                });
+
+            modelBuilder.Entity("ProjectManagment.Data.ProjectsToMembers", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ProjectsToMembers");
+                });
+
+            modelBuilder.Entity("ProjectManagment.Data.Status", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("Status");
+                });
+
+            modelBuilder.Entity("ApplicationUserProject", b =>
+                {
+                    b.HasOne("ProjectManagment.Areas.Identity.Data.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("MembersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ProjectManagment.Data.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectsOwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("IssueLabel", b =>
+                {
+                    b.HasOne("ProjectManagment.Data.Issue", null)
+                        .WithMany()
+                        .HasForeignKey("IssuesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ProjectManagment.Data.Label", null)
+                        .WithMany()
+                        .HasForeignKey("LabelsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -359,12 +578,23 @@ namespace ProjectManagment.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ProjectManagment.Data.Area", b =>
+                {
+                    b.HasOne("ProjectManagment.Data.Project", "Project")
+                        .WithMany("Areas")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("ProjectManagment.Data.Comment", b =>
                 {
                     b.HasOne("ProjectManagment.Areas.Identity.Data.ApplicationUser", "Author")
                         .WithMany("Comments")
                         .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("ProjectManagment.Data.Issue", "Issue")
@@ -380,10 +610,22 @@ namespace ProjectManagment.Migrations
 
             modelBuilder.Entity("ProjectManagment.Data.Issue", b =>
                 {
+                    b.HasOne("ProjectManagment.Data.Area", "Area")
+                        .WithMany()
+                        .HasForeignKey("AreaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ProjectManagment.Data.Milestone", "Milestone")
+                        .WithMany()
+                        .HasForeignKey("MilestoneId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ProjectManagment.Areas.Identity.Data.ApplicationUser", "Owner")
                         .WithMany("Issues")
                         .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("ProjectManagment.Data.Project", "Project")
@@ -392,7 +634,60 @@ namespace ProjectManagment.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.HasOne("ProjectManagment.Data.Status", "Status")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Area");
+
+                    b.Navigation("Milestone");
+
                     b.Navigation("Owner");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("Status");
+                });
+
+            modelBuilder.Entity("ProjectManagment.Data.Label", b =>
+                {
+                    b.HasOne("ProjectManagment.Data.Project", "Project")
+                        .WithMany("Labels")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("ProjectManagment.Data.LabelsToIssues", b =>
+                {
+                    b.HasOne("ProjectManagment.Data.Issue", "Issue")
+                        .WithMany()
+                        .HasForeignKey("IssueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ProjectManagment.Data.Label", "Label")
+                        .WithMany()
+                        .HasForeignKey("LabelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Issue");
+
+                    b.Navigation("Label");
+                });
+
+            modelBuilder.Entity("ProjectManagment.Data.Milestone", b =>
+                {
+                    b.HasOne("ProjectManagment.Data.Project", "Project")
+                        .WithMany("Milestones")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.Navigation("Project");
                 });
@@ -400,12 +695,42 @@ namespace ProjectManagment.Migrations
             modelBuilder.Entity("ProjectManagment.Data.Project", b =>
                 {
                     b.HasOne("ProjectManagment.Areas.Identity.Data.ApplicationUser", "Owner")
-                        .WithMany("Projects")
+                        .WithMany("ProjectsJoined")
                         .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("ProjectManagment.Data.ProjectsToMembers", b =>
+                {
+                    b.HasOne("ProjectManagment.Data.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ProjectManagment.Areas.Identity.Data.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ProjectManagment.Data.Status", b =>
+                {
+                    b.HasOne("ProjectManagment.Data.Project", "Project")
+                        .WithMany("Statuses")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("ProjectManagment.Areas.Identity.Data.ApplicationUser", b =>
@@ -414,7 +739,7 @@ namespace ProjectManagment.Migrations
 
                     b.Navigation("Issues");
 
-                    b.Navigation("Projects");
+                    b.Navigation("ProjectsJoined");
                 });
 
             modelBuilder.Entity("ProjectManagment.Data.Issue", b =>
@@ -424,7 +749,15 @@ namespace ProjectManagment.Migrations
 
             modelBuilder.Entity("ProjectManagment.Data.Project", b =>
                 {
+                    b.Navigation("Areas");
+
                     b.Navigation("Issues");
+
+                    b.Navigation("Labels");
+
+                    b.Navigation("Milestones");
+
+                    b.Navigation("Statuses");
                 });
 #pragma warning restore 612, 618
         }

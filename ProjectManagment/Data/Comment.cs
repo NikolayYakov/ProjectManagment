@@ -14,5 +14,7 @@ namespace ProjectManagment.Data
         [ForeignKey("IssueId")]
         public Issue Issue { get; set; }
         public Guid IssueId { get; set; }
+
+        public bool isDeleted { get; set; } = false;
     }
 }

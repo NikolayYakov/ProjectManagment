@@ -14,5 +14,9 @@ namespace ProjectManagment.Data
         public ICollection<Issue> Issues { get; set; }
         public ICollection<Milestone> Milestones { get; set; }
         public ICollection<Label> Labels { get; set; }
+        public ICollection<Status> Statuses { get; set; }
+        public ICollection<Area> Areas { get; set; }
+        public ICollection<ApplicationUser> Members { get; set; }
+        public bool isDeleted { get; set; } = false;
     }
 }

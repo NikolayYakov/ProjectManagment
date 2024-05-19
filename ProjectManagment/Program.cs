@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ProjectManagment.Areas.Identity.Data;
 using ProjectManagment.Data;
+using ProjectManagment.Repositories;
 namespace ProjectManagment
 {
     public class Program
@@ -15,6 +16,16 @@ namespace ProjectManagment
 
             builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDbContext>();
 
+            builder.Services.AddScoped<ProjectRepository>();
+
+            //swagger
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "MyApi", Version = "v1" });
+            });
+
+
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
@@ -27,6 +38,14 @@ namespace ProjectManagment
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+            //else
+            //{
+                app.UseSwagger();
+                app.UseSwaggerUI(c=>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "MyApi v1");
+                });
+            //}
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
