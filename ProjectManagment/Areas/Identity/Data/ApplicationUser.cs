@@ -14,6 +14,7 @@ public class ApplicationUser : IdentityUser
     public ICollection<Issue> Issues { get; set; }
     public ICollection<Comment> Comments { get; set; }
     public ICollection<Project> ProjectsJoined { get; set; }
+    public ICollection<Issue> IssuesAssigned { get; set; }
     //public ICollection<Issue> AssignedIssues { get; set; }
 }
 

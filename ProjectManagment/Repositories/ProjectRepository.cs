@@ -68,6 +68,25 @@ namespace ProjectManagment.Repositories
             return allProjects;
         }
 
-   
+        public async Task AddUser(Guid projectId, string userId)
+        {
+            ProjectsToMembers projectToMember = new ProjectsToMembers()
+            {
+                Id = new Guid(),
+                UserId = userId,
+                ProjectId = projectId
+            };
+
+            dbContext.ProjectsToMembers.Add(projectToMember);
+            await dbContext.SaveChangesAsync();
+        }
+
+        public async Task RemoveUser(ProjectsToMembers projectToMember)
+        {
+            projectToMember.IsRemoved = true;
+            dbContext.SaveChanges();
+        }
+
+
     }
 }

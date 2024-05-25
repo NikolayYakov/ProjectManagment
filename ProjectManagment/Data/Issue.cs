@@ -26,6 +26,8 @@ namespace ProjectManagment.Data
         [ForeignKey("AreaId")]
         public Guid AreaId { get; set; }
         public List<Label> Labels { get; set; }
-        public bool isDeleted { get; set; } = false;
+        public bool IsEpic { get; set; } = false;
+        public bool IsDeleted { get; set; } = false;
+        public ICollection<ApplicationUser> Assignees { get; set; }
     }
 }

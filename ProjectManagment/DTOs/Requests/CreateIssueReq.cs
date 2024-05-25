@@ -12,5 +12,6 @@ namespace ProjectManagment.DTOs.Requests
         public Guid StatusId { get; set; }
         public Guid AreaId { get; set; }
         public bool isDeleted { get; set; } = false;
+        public bool isEpic { get; set; }
     }
 }

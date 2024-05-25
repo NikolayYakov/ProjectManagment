@@ -24,6 +24,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Area> Areas { get; set; }
     public DbSet<Status> Status { get; set; }
     public DbSet<LabelsToIssues> LabelsToIssues { get; set; }
+    public DbSet<UsersToIssues> UsersToIssues { get; set; }
     public DbSet<ProjectsToMembers> ProjectsToMembers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -88,8 +89,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         .HasPrincipalKey(e => e.Id);
 
         builder.Entity<Issue>()
-       .HasMany(e => e.Labels)
-       .WithMany(e => e.Issues);
+       .HasMany(e => e.Assignees)
+       .WithMany(e => e.IssuesAssigned);
 
         builder.ApplyConfiguration(new ApplicationUserEntityConfiguration());
     }

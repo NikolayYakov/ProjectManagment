@@ -1,4 +1,5 @@
-﻿using ProjectManagment.Data;
+﻿using ProjectManagment.Areas.Identity.Data;
+using ProjectManagment.Data;
 using ProjectManagment.DTOs.Requests;
 
 namespace ProjectManagment.Repositories
@@ -11,58 +12,97 @@ namespace ProjectManagment.Repositories
             this.dbContext = dbContext;
         }
 
-        public Issue GetIssue(string issueTitle)
+        public Issue GetIssueByTitle(string issueTitle)
         {
-            return dbContext.Issues.FirstOrDefault(x => x.Title == issueTitle);
+            return dbContext.Issues.FirstOrDefault(x => x.Title == issueTitle && !x.IsDeleted);
         }
 
-        public async Task CreateIssue(CreateProjectReq projectReq, string userId)
+        public Issue GetIssued(Guid issueId)
         {
-            Project project = new Project()
+            return dbContext.Issues.FirstOrDefault(x => x.Id == issueId && !x.IsDeleted);
+        }
+
+        public async Task CreateIssue(CreateIssueReq issueReq, string userId)
+        {
+            Issue issue = new Issue()
             {
                 Id = new Guid(),
-                Name = projectReq.Name,
-                Description = projectReq.Description,
-                OwnerId = userId
+                Title = issueReq.Title,
+                Body = issueReq.Body,
+                OwnerId = userId,
+                ProjectId = issueReq.ProjectId,
+                StatusId = issueReq.StatusId,
+                AreaId = issueReq.AreaId,
+                IsEpic = issueReq.isEpic
             };
 
-            dbContext.Projects.Add(project);
+            dbContext.Issues.Add(issue);
             await dbContext.SaveChangesAsync();
         }
 
-        public async Task<Project> GetUserProjectByName(string projectName, string userId)
+        public async Task DeleteIssue(Issue issue)
         {
-            return dbContext.Projects.FirstOrDefault(x => x.OwnerId == userId && x.Name == projectName);
-        }
-
-        public async Task<Project> GetProject(Guid ProjectId)
-        {
-            return dbContext.Projects.FirstOrDefault(x => x.Id == ProjectId);
-        }
-
-        public async Task DeleteProject(Project Project)
-        {
-            Project.isDeleted = true;
+            issue.IsDeleted = true;
             dbContext.SaveChanges();
         }
 
-        public async Task UpdateProject(Project Project)
+        public async Task UpdateIssue(Issue issue)
         {
-            dbContext.Projects.Update(Project);
+            dbContext.Issues.Update(issue);
             dbContext.SaveChanges();
         }
 
-        public async Task<bool> DoesUserContainProjectWithName(string projectName, string userId)
+        public async Task<IQueryable<Issue>> GetIssuesInProject(Guid projectId)
         {
-            return dbContext.Projects.Any(x => x.OwnerId == userId && x.Name == projectName && !x.isDeleted);
+            return dbContext.Issues.Where(x => x.ProjectId == projectId);
         }
 
-        public async Task<List<Project>> GetAllUserProjects(string userId)
+        public async Task<IQueryable<Label>> GetIssueLabels(Guid issueId)
         {
-            var allProjects = new List<Project>();
-            allProjects.AddRange(dbContext.Projects.Where(x => x.OwnerId == userId && !x.isDeleted));
-            allProjects.AddRange(dbContext.ProjectsToMembers.Where(x => x.UserId == userId && x.Project.isDeleted).Select(x => x.Project));
-            return allProjects;
+            return dbContext.LabelsToIssues.Where(x => x.IssueId == issueId).Select(x=>x.Label);
+        }
+
+        public async Task<IQueryable<ApplicationUser>> GetIssueAssignees(Guid issueId)
+        {
+            return dbContext.UsersToIssues.Where(x => x.IssueId == issueId).Select(x => x.User);
+        }
+
+        public async Task AssignUser(Guid issueId, string userId)
+        {
+            UsersToIssues userToIssue = new UsersToIssues()
+            {
+                Id = new Guid(),
+                UserId = userId,
+                IssueId = issueId
+            };
+
+            dbContext.UsersToIssues.Add(userToIssue);
+            await dbContext.SaveChangesAsync();
+        }
+
+        public async Task UnAssignUser(UsersToIssues userToIssue)
+        {
+            userToIssue.IsRemoved = true;
+            dbContext.SaveChanges();
+        }
+
+        public async Task AddLabel(Guid issueId, Guid labelId)
+        {
+            LabelsToIssues labelToIssue = new LabelsToIssues()
+            {
+                Id = new Guid(),
+                LabelId = labelId,
+                IssueId = issueId
+            };
+
+            dbContext.LabelsToIssues.Add(labelToIssue);
+            await dbContext.SaveChangesAsync();
+        }
+
+        public async Task RemoveLabel(LabelsToIssues labelToIssue)
+        {
+            labelToIssue.IsRemoved = true;
+            dbContext.SaveChanges();
         }
     }
 }
