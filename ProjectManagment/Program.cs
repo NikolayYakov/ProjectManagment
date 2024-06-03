@@ -17,6 +17,7 @@ namespace ProjectManagment
             builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDbContext>();
 
             builder.Services.AddScoped<ProjectRepository>();
+            builder.Services.AddScoped<IssueRepository>();
 
             //swagger
             builder.Services.AddEndpointsApiExplorer();
@@ -24,7 +25,6 @@ namespace ProjectManagment
             {
                 c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "MyApi", Version = "v1" });
             });
-
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();

@@ -1,0 +1,86 @@
+﻿@model IssueViewModel
+
+@{
+    ViewBag.Title = "Issues";
+}
+
+<h2>Issues</h2>
+
+<form method="get" action="@Url.Action("AllIssues")">
+    <input type="text" name="searchTerm" value="@Model.SearchTerm" placeholder="Search issues..." />
+    <button type="submit">Search</button>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>Issue Number</th>
+            <th>Title</th>
+            <th>Labels</th>
+            <th>Assignees</th>
+            <th>Milestone</th>
+            <th>Area</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var issue in Model.Issues)
+        {
+            <tr onclick="location.href='@Url.Action("Details", "Issue", new { id = issue.IssueNumber })'">
+                <td>@issue.IssueNumber</td>
+                <td>@issue.Title</td>
+                <td>@issue.Labels</td>
+                <td>@issue.Assignees</td>
+                <td>@issue.Milestone</td>
+                <td>@issue.Area</td>
+                <td>@issue.Status</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div>
+    @if (Model.PageNumber > 1)
+    {
+        <a href="@Url.Action("AllIssues", new { page = Model.PageNumber - 1, searchTerm = Model.SearchTerm })">Previous</a>
+    }
+    Page @Model.PageNumber of @Model.TotalPages
+    @if (Model.PageNumber < Model.TotalPages)
+    {
+        <a href="@Url.Action("AllIssues", new { page = Model.PageNumber + 1, searchTerm = Model.SearchTerm })">Next</a>
+    }
+</div>
+
+
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        tr {
+            cursor: pointer;
+        }
+
+            tr:hover {
+                background-color: #f0f0f0;
+            }
+
+        div {
+            margin-top: 20px;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+    </style>

@@ -3,6 +3,7 @@ using ProjectManagment.Areas.Identity.Data;
 using ProjectManagment.Data;
 using ProjectManagment.DTOs.Requests;
 using Microsoft.Identity;
+using ProjectManagment.Models;
 
 namespace ProjectManagment.Repositories
 {
@@ -24,7 +25,7 @@ namespace ProjectManagment.Repositories
             Project project = new Project()
             {
                 Id = new Guid(),
-                Name = projectReq.Name,
+                Name = projectReq.Title,
                 Description = projectReq.Description,
                 OwnerId = userId
             };
@@ -60,11 +61,11 @@ namespace ProjectManagment.Repositories
             return dbContext.Projects.Any(x => x.OwnerId == userId && x.Name == projectName && !x.isDeleted);
         }
 
-        public async Task<List<Project>> GetAllUserProjects(string userId)
+        public async Task<List<ProjectModel>> GetAllUserProjects(string userId)
         {
-            var allProjects = new List<Project>();
-            allProjects.AddRange(dbContext.Projects.Where(x => x.OwnerId == userId && !x.isDeleted));
-            allProjects.AddRange(dbContext.ProjectsToMembers.Where(x => x.UserId == userId && x.Project.isDeleted).Select(x => x.Project));
+            var allProjects = new List<ProjectModel>();
+            allProjects.AddRange(dbContext.Projects.Where(x => x.OwnerId == userId && !x.isDeleted).Select(x=> new ProjectModel(x.Id, x.Name, x.Description)));
+            allProjects.AddRange(dbContext.ProjectsToMembers.Where(x => x.UserId == userId && x.Project.isDeleted).Select(x => x.Project).Select(x => new ProjectModel(x.Id, x.Name, x.Description)));
             return allProjects;
         }
 

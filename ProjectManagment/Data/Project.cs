@@ -1,10 +1,22 @@
 ﻿using ProjectManagment.Areas.Identity.Data;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Reflection;
 
 namespace ProjectManagment.Data
 {
     public class Project
     {
+        public Project(Guid id, string title, string description)
+        {
+            this.Id = id;
+            this.Name = title;
+            this.Description = description;
+        }
+        public Project()
+        {
+            
+        }
+
         public Guid Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
@@ -18,5 +30,6 @@ namespace ProjectManagment.Data
         public ICollection<Area> Areas { get; set; }
         public ICollection<ApplicationUser> Members { get; set; }
         public bool isDeleted { get; set; } = false;
+
     }
 }

@@ -1,0 +1,97 @@
+﻿
+
+@model Board
+
+@* <div class="board">
+    @foreach (var column in Model.Columns)
+    {
+        <div class="column">
+            <h3>@column.Name</h3>
+            <div class="cards">
+                @foreach (var card in column.Cards)
+                {
+                    <div class="card" data-card-id="@card.Id">
+                        <h4>@card.Title</h4>
+                        <p>@card.Description</p>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div> *@
+
+<div class="board">
+    <div class="column">
+        <h3 class="column-title">To Do</h3>
+        <div class="cards">
+            <div class="card">Task 1</div>
+            <div class="card">Task 2</div>
+        </div>
+    </div>
+    <div class="column">
+        <h3 class="column-title">DONE</h3>
+        <div class="cards">
+            <div class="card">Task 3</div>
+            <div class="card">Task 4</div>
+        </div>
+    </div>
+    <!-- Other columns -->
+</div>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+
+
+<script>
+    <script>
+        $(document).ready(function () {
+            $(".cards").sortable({
+                connectWith: ".cards",
+                placeholder: "card-placeholder",
+                start: function (event, ui) {
+                    ui.placeholder.height(ui.item.height());
+                },
+                receive: function (event, ui) {
+                    var sourceColumn = ui.sender || ui.item.parent();
+                    var targetColumn = $(this);
+                    var cardId = ui.item.data("card-id");
+                    var newColumnId = targetColumn.closest(".column").data("column-id");
+
+                    // Send AJAX request to update card position and column in backend
+                    $.ajax({
+                        type: "POST",
+                        url: "/Home/MoveCard",
+                        data: { cardId: cardId, newColumnId: newColumnId },
+                        success: function (data) {
+                            // Handle success
+                            if (data.success) {
+                                ui.item.remove(); // Remove the original item after dropping
+                            } else {
+                                // Handle failure
+                            }
+                        },
+                        error: function () {
+                            // Handle error
+                        }
+                    });
+                }
+            });
+
+            $(".card").draggable({
+                connectToSortable: ".cards",
+                revert: "invalid",
+                helper: "original",
+                zIndex: 100,
+                start: function (event, ui) {
+                    ui.helper.css("visibility", "hidden"); // Hide helper during dragging
+                    ui.helper.siblings(".column-title").hide(); // Hide column titles during dragging
+                    ui.helper.siblings(".cards").hide(); // Hide other cards during dragging
+                },
+                stop: function (event, ui) {
+                    ui.helper.css("visibility", "visible"); // Restore visibility of helper
+                    ui.helper.siblings(".column-title").show(); // Show column titles after dragging
+                    ui.helper.siblings(".cards").show(); // Show other cards after dragging
+                }
+            }).disableSelection();
+        });
+    </script>
+</script>
