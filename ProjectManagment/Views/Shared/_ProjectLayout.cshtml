@@ -1,0 +1,62 @@
+﻿@{
+    Layout = "_Layout"; // Set the main layout for this secondary layout
+}
+
+<div class="d-flex flex-column flex-md-row min-vh-100">
+    <nav class="sidebar bg-white">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="~/project/@Model.ProjectId/issue/all">All issues</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="~/project/@Model.ProjectId/label/all">Labels</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="~/project/@Model.ProjectId/area/all">Areas</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="~/project/@Model.ProjectId/milestone/all">Milestones</a>
+            </li>
+            <li class="nav-item">
+            <a class="nav-link" href="~/project/@Model.ProjectId/status/all">Statuses</a>
+            </li>
+        </ul>
+    </nav>
+    <div class="content flex-grow-1 p-3">
+        @RenderBody()
+    </div>
+</div>
+
+<style>
+    .sidebar {
+        width: 200px; /* Consistent width */
+        background-color: #ffffff; /* White background color */
+        border: 1px solid #ddd; /* Light border */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        position: relative; /* Ensure it is positioned correctly */
+        padding-top: 20px;
+        padding-bottom: 20px; /* Ensure it reaches the bottom */
+        flex-shrink: 0; /* Prevent it from shrinking */
+    }
+
+        .sidebar .nav-link {
+            color: #333; /* Darker text color */
+            font-weight: bold; /* Make links bold */
+            font-size: 0.9rem; /* Adjust font size for better readability */
+            padding: 10px 15px; /* Increase padding for better touch targets */
+        }
+
+            .sidebar .nav-link:hover {
+                background-color: #f8f9fa; /* Light grey background on hover */
+                color: #007bff; /* Primary color text on hover */
+                border-left: 3px solid #007bff; /* Left border to indicate active link */
+            }
+
+    .content {
+        padding: 20px;
+    }
+
+    body {
+        min-height: 100vh; /* Ensure body takes full height */
+    }
+</style>

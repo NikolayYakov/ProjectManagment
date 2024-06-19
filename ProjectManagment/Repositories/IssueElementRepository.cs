@@ -18,7 +18,6 @@ namespace ProjectManagment.Repositories
             {
                 Id = new Guid(),
                 Name = issueElementReq.Name,
-                ProjectId = issueElementReq.ProjectId
             };
 
             dbContext.Labels.Add(label);
@@ -31,7 +30,6 @@ namespace ProjectManagment.Repositories
             {
                 Id = new Guid(),
                 Name = issueElementReq.Name,
-                ProjectId = issueElementReq.ProjectId
             };
 
             dbContext.Status.Add(status);
@@ -44,7 +42,6 @@ namespace ProjectManagment.Repositories
             {
                 Id = new Guid(),
                 Name = issueElementReq.Name,
-                ProjectId = issueElementReq.ProjectId
             };
 
             dbContext.Milestones.Add(milestone);
@@ -57,7 +54,6 @@ namespace ProjectManagment.Repositories
             {
                 Id = new Guid(),
                 Name = issueElementReq.Name,
-                ProjectId = issueElementReq.ProjectId
             };
 
             dbContext.Areas.Add(area);

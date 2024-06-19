@@ -1,0 +1,102 @@
+﻿@model ProjectManagment.Models.ProjectLabelViewModel
+
+@{
+    ViewBag.Title = "Project Labels";
+    Layout = "_ProjectLayout";
+}
+
+<h2>Project Labels</h2>
+
+<form method="get" action="@Url.Action("AllLabels")">
+    <input type="text" name="searchTerm" value="@Model.SearchTerm" placeholder="Search labels..." />
+    <button type="submit">Search</button>
+</form>
+
+<a href="~/project/@Model.ProjectId/label/create" class="btn btn-success">Create New Label</a>
+
+<table class="labels-table">
+    <thead>
+        <tr>
+            <th>Number</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var label in Model.Labels)
+        {
+            <tr>
+                <td>@label.Number</td>
+                <td>@label.Name</td>
+                <td>@label.Description</td>
+                <td>
+                    <a href="~/project/@Model.ProjectId/label/@label.LabelId/edit" class="btn btn-info">Edit</a>
+                    <form method="post" asp-action="Delete" asp-controller="Label" onsubmit="return confirm('Are you sure you want to delete this label?');" style="display:inline;">
+                        <input type="hidden" name="id" value="@label.LabelId" />
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="pagination-container">
+    @if (Model.PageNumber > 1)
+    {
+        <a href="@Url.Action("all", new { page = Model.PageNumber - 1, searchTerm = Model.SearchTerm })">Previous</a>
+    }
+    Page @Model.PageNumber of @Model.TotalPages
+    @if (Model.PageNumber < Model.TotalPages)
+    {
+        <a href="@Url.Action("all", new { page = Model.PageNumber + 1, searchTerm = Model.SearchTerm })">Next</a>
+    }
+</div>
+
+<style>
+    /* Ensure no conflicting styles */
+    .container-fluid {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    /* Table and pagination styles */
+    .labels-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    th, td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f4f4f4;
+    }
+
+    tr {
+        cursor: pointer;
+    }
+
+        tr:hover {
+            background-color: #f0f0f0;
+        }
+
+    .pagination-container {
+        margin-top: 20px;
+    }
+
+    form {
+        margin-bottom: 20px;
+    }
+
+    .btn {
+        margin-right: 5px;
+    }
+
+
+</style>

@@ -1,0 +1,185 @@
+﻿@model ProjectManagment.Models.IssueDetailsModel
+
+@{
+    Layout = "_ProjectLayout";
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="issue-details-container">
+    <div class="issue-header">
+        <h1>@Model.Title</h1>
+        <div class="issue-actions">
+            <a href="/issue/edit/@Model.Id" class="btn btn-primary">Edit</a>
+            <a href="/issue/create" class="btn btn-success">New Issue</a>
+        </div>
+    </div>
+
+    <div class="issue-details">
+        <div class="issue-body">
+            <p>@Model.Body</p>
+
+            <div class="comments">
+                <h3>Comments</h3>
+                <ul>
+                    @foreach (var comment in Model.Comments)
+                    {
+                        <li>
+                            <p><strong>@comment.Author</strong> commented at @comment.PostedAt.ToString("g"):</p>
+                            <p>@comment.Text</p>
+                        </li>
+                    }
+                </ul>
+
+                <div class="add-comment">
+                    <h4>Add a comment</h4>
+                    <textarea id="newComment" class="form-control" rows="3"></textarea>
+                    <button class="btn btn-secondary" onclick="addComment()">Comment</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="issue-meta">
+            <div class="meta-section">
+                <h4>Assignees</h4>
+                <p>@Model.Assignee</p>
+            </div>
+            <div class="meta-section">
+                <h4>Area</h4>
+                <p>@Model.Area</p>
+            </div>
+            <div class="meta-section">
+                <h4>Labels</h4>
+                <ul>
+                    @foreach (var label in Model.Labels)
+                    {
+                        <li>@label</li>
+                    }
+                </ul>
+            </div>
+            <div class="meta-section">
+                <h4>Milestone</h4>
+                <p>@Model.Milestone</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="issue-footer">
+        <button class="btn btn-warning" onclick="closeIssue()">Close</button>
+        <button class="btn btn-danger" onclick="deleteIssue()">Delete</button>
+    </div>
+</div>
+
+<style>
+    body {
+        background-color: #f5f5f5;
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+
+    .issue-details-container {
+        max-width: 1000px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+
+    .issue-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .issue-actions .btn {
+        margin-left: 10px;
+    }
+
+    .issue-details {
+        display: flex;
+    }
+
+    .issue-body {
+        flex: 1;
+        margin-right: 20px;
+    }
+
+    .issue-meta {
+        flex: 0 0 200px;
+    }
+
+    .meta-section {
+        margin-bottom: 20px;
+    }
+
+        .meta-section h4 {
+            margin: 0 0 5px 0;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .meta-section p, .meta-section ul {
+            margin: 0;
+            padding: 0;
+            font-size: 12px;
+            color: #555;
+        }
+
+        .meta-section ul {
+            list-style-type: none;
+        }
+
+            .meta-section ul li {
+                background-color: #e9ecef;
+                border-radius: 2px;
+                padding: 2px 5px;
+                display: inline-block;
+                margin: 2px 0;
+            }
+
+    .comments ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
+
+        .comments ul li {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            margin-bottom: 10px;
+        }
+
+    .add-comment {
+        margin-top: 20px;
+    }
+
+    .issue-footer {
+        display: flex;
+        justify-content: flex-start;
+        margin-top: 20px;
+    }
+
+        .issue-footer .btn {
+            margin-right: 10px;
+        }
+</style>
+
+<script>
+    function addComment() {
+        // Add your comment submission logic here
+        alert('Comment added');
+    }
+
+    function closeIssue() {
+        // Add your close issue logic here
+        alert('Issue closed');
+    }
+
+    function deleteIssue() {
+        // Add your delete issue logic here
+        alert('Issue deleted');
+    }
+</script>

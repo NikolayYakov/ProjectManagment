@@ -6,6 +6,7 @@ using ProjectManagment.DTOs.Responses;
 using ProjectManagment.Repositories;
 using System.Security.Claims;
 using ProjectManagment.Models;
+using System.Security;
 
 namespace ProjectManagment.Controllers
 {
@@ -36,7 +37,7 @@ namespace ProjectManagment.Controllers
         //    return new CommanRes();
         //}
 
-        public async Task<IActionResult> AllProjects()
+        public async Task<IActionResult> All()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             var userProjects = await this.projectRepository.GetAllUserProjects(userId);
@@ -51,8 +52,18 @@ namespace ProjectManagment.Controllers
             return View(userProjects);
         }
 
+        [HttpGet("Project/Details/{id}")]
+        public async Task<IActionResult> Details(Guid id)
+        {
+            var projectDetailsModel = new ProjectDetailsModel()
+            {
+                ProjectId = id,
+            };
 
-		public IActionResult Board()
+            return View(projectDetailsModel);
+        }
+
+        public IActionResult Board()
 		{
             var model = new Board
             {
@@ -110,7 +121,7 @@ namespace ProjectManagment.Controllers
                     await this.projectRepository.CreateProject(project, userId);
                 }
               
-                return RedirectToAction("AllProjects"); // Redirect to the index or another appropriate action
+                return RedirectToAction("all"); // Redirect to the index or another appropriate action
             }
 
             return View(project);
@@ -214,7 +225,7 @@ namespace ProjectManagment.Controllers
                 project.Description = projectReq.Description;
 
                 await projectRepository.UpdateProject(project);
-                return RedirectToAction("AllProjects");
+                return RedirectToAction("all");
             }
 
             return View(new ProjectModel(projectReq.Id, projectReq.Title, projectReq.Description));

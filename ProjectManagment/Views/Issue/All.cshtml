@@ -2,6 +2,7 @@
 
 @{
     ViewBag.Title = "Issues";
+    Layout = "_ProjectLayout";
 }
 
 <h2>Issues</h2>
@@ -11,7 +12,7 @@
     <button type="submit">Search</button>
 </form>
 
-<table>
+<table class="issues-table">
     <thead>
         <tr>
             <th>Issue Number</th>
@@ -39,7 +40,7 @@
     </tbody>
 </table>
 
-<div>
+<div class="pagination-container">
     @if (Model.PageNumber > 1)
     {
         <a href="@Url.Action("AllIssues", new { page = Model.PageNumber - 1, searchTerm = Model.SearchTerm })">Previous</a>
@@ -52,35 +53,42 @@
 </div>
 
 
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
+<style>
+    /* Ensure no conflicting styles */
+    .container-fluid {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    /* Table and pagination styles */
+    .issues-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f4f4f4;
+    }
+
+    tr {
+        cursor: pointer;
+    }
+
+        tr:hover {
+            background-color: #f0f0f0;
         }
 
-        th, td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: left;
-        }
+    .pagination-container {
+        margin-top: 20px;
+    }
 
-        th {
-            background-color: #f4f4f4;
-        }
-
-        tr {
-            cursor: pointer;
-        }
-
-            tr:hover {
-                background-color: #f0f0f0;
-            }
-
-        div {
-            margin-top: 20px;
-        }
-
-        form {
-            margin-bottom: 20px;
-        }
-    </style>
+    form {
+        margin-bottom: 20px;
+    }
+</style>

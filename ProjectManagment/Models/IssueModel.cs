@@ -13,6 +13,7 @@
 
     public class IssueViewModel
     {
+        public Guid ProjectId { get; set; }
         public List<IssueModel> Issues { get; set; }
         public string SearchTerm { get; set; }
         public int PageNumber { get; set; }

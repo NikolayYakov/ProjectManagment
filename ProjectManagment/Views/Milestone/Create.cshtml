@@ -1,0 +1,41 @@
+﻿@model ProjectManagment.Models.ProjectMilestone
+
+@{
+    ViewBag.Title = "Create Milestone";
+    Layout = "_ProjectLayout";
+}
+
+<h2>Create New Milestone</h2>
+
+<form asp-action="CreateMilestone" method="post">
+    <div class="form-group">
+        <label for="Number">Number</label>
+        <input type="number" class="form-control" id="Number" name="Number" />
+    </div>
+    <div class="form-group">
+        <label for="Name">Name</label>
+        <input type="text" class="form-control" id="Name" name="Name" />
+    </div>
+    <div class="form-group">
+        <label for="Description">Description</label>
+        <textarea class="form-control" id="Description" name="Description" rows="3"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Create</button>
+    <a href="@Url.Action("AllMilestones", "Projects")" class="btn btn-secondary">Cancel</a>
+</form>
+
+<style>
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .btn {
+        margin-right: 5px;
+    }
+</style>
