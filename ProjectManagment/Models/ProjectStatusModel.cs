@@ -13,6 +13,20 @@ namespace ProjectManagment.Models
 
     public class ProjectStatus
     {
+        public ProjectStatus()
+        {
+        }
+
+        public ProjectStatus(Guid projectId, Guid statusId, string name, string description, int number)
+        {
+            this.ProjectId = projectId;
+            this.StatusId = statusId;
+            this.Name = name;
+            this.Description = description;
+            this.Number = number;
+        }
+        public Guid StatusId { get; set; }
+        public Guid ProjectId { get; set; }
         public int Number { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }

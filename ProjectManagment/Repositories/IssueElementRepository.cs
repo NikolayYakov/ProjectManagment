@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProjectManagment.Data;
 using ProjectManagment.DTOs.Requests;
+using ProjectManagment.Models;
 
 namespace ProjectManagment.Repositories
 {
@@ -12,48 +13,60 @@ namespace ProjectManagment.Repositories
             this.dbContext = dbContext;
         }
 
-        public async Task AddLabelToProject(CreateIssueElementReq issueElementReq)
+        public async Task AddLabelToProject(CreateIssueElementReq issueElementReq, Guid projectId, int lastLabelNumber)
         {
             Label label = new Label()
             {
                 Id = new Guid(),
                 Name = issueElementReq.Name,
+                Description = issueElementReq.Description,
+                Number = lastLabelNumber + 1,
+                ProjectId = projectId,
             };
 
             dbContext.Labels.Add(label);
             await dbContext.SaveChangesAsync();
         }
 
-        public async Task AddStatusToProject(CreateIssueElementReq issueElementReq)
+        public async Task AddStatusToProject(CreateIssueElementReq issueElementReq, Guid projectId, int lastStatusNumber)
         {
             Status status = new Status()
             {
                 Id = new Guid(),
                 Name = issueElementReq.Name,
+                Description = issueElementReq.Description,
+                Number = lastStatusNumber + 1,
+                ProjectId = projectId,
             };
 
             dbContext.Status.Add(status);
             await dbContext.SaveChangesAsync();
         }
 
-        public async Task AddMilestoneToProject(CreateIssueElementReq issueElementReq)
+        public async Task AddMilestoneToProject(CreateIssueElementReq issueElementReq, Guid projectId, int lastMilestoneNumber)
         {
             Milestone milestone = new Milestone()
             {
                 Id = new Guid(),
                 Name = issueElementReq.Name,
+                Description = issueElementReq.Description,
+                Number = lastMilestoneNumber + 1,
+                ProjectId = projectId,
             };
 
             dbContext.Milestones.Add(milestone);
             await dbContext.SaveChangesAsync();
         }
 
-        public async Task AddAreaToProject(CreateIssueElementReq issueElementReq)
+        public async Task AddAreaToProject(CreateIssueElementReq issueElementReq, Guid projectId, int lastAreaNumber)
         {
             Area area = new Area()
             {
                 Id = new Guid(),
                 Name = issueElementReq.Name,
+                Description = issueElementReq.Description,
+                Number = lastAreaNumber + 1,
+                ProjectId = projectId,
             };
 
             dbContext.Areas.Add(area);
@@ -87,7 +100,7 @@ namespace ProjectManagment.Repositories
 
         public async Task<Label> GetLabelFromProject(Guid labelId)
         {
-           return await this.dbContext.Labels.FirstOrDefaultAsync(x=>x.Id == labelId);
+            return await this.dbContext.Labels.FirstOrDefaultAsync(x => x.Id == labelId && !x.isDeleted);
         }
 
         public async Task<Status> GetStatusFromProject(Guid statusId)
@@ -149,24 +162,56 @@ namespace ProjectManagment.Repositories
             return await dbContext.Areas.AnyAsync(x => x.ProjectId == projectId && x.Name == areaName && !x.isDeleted);
         }
 
-        public async Task<IQueryable<Label>> GetAllProjectLabels(Guid projectId)
+        public async Task<IQueryable<ProjectLabel>> GetAllProjectLabels(Guid projectId)
         {
-            return this.dbContext.Labels.Where(x=>x.ProjectId == projectId && !x.isDeleted);
+            return this.dbContext.Labels.Where(x=>x.ProjectId == projectId && !x.isDeleted)
+                                        .Select(x=>new ProjectLabel(projectId, x.Id, x.Name, x.Description, x.Number));
         }
 
-        public async Task<IQueryable<Status>> GetAllProjectStatuses(Guid projectId)
+        public async Task<IQueryable<ProjectStatus>> GetAllProjectStatuses(Guid projectId)
         {
-            return this.dbContext.Status.Where(x => x.ProjectId == projectId && !x.isDeleted);
+            return this.dbContext.Status.Where(x => x.ProjectId == projectId && !x.isDeleted)
+                                        .Select(x => new ProjectStatus(projectId, x.Id, x.Name, x.Description, x.Number));
         }
 
-        public async Task<IQueryable<Milestone>> GetAllProjectMilestones(Guid projectId)
+        public async Task<IQueryable<ProjectMilestone>> GetAllProjectMilestones(Guid projectId)
         {
-            return this.dbContext.Milestones.Where(x => x.ProjectId == projectId && !x.isDeleted);
+            return this.dbContext.Milestones.Where(x => x.ProjectId == projectId && !x.isDeleted)
+                                            .Select(x => new ProjectMilestone(projectId, x.Id, x.Name, x.Description, x.Number));
         }
 
-        public async Task<IQueryable<Area>> GetAllProjectAreas(Guid projectId)
+        public async Task<IQueryable<ProjectArea>> GetAllProjectAreas(Guid projectId)
         {
-            return this.dbContext.Areas.Where(x => x.ProjectId == projectId && !x.isDeleted);
+            return this.dbContext.Areas.Where(x => x.ProjectId == projectId && !x.isDeleted)
+                                        .Select(x => new ProjectArea(projectId, x.Id, x.Name, x.Description, x.Number));
+        }
+
+        public async Task<int> GetLastProjectLabelNumber(Guid projectId)
+        {
+            var lastLabel = await this.dbContext.Labels.Where(x => x.ProjectId == projectId).OrderBy(x => x.Number).LastOrDefaultAsync();
+
+            return lastLabel == null ? 0 : lastLabel.Number;
+        }
+
+        public async Task<int> GetLastProjectAreaNumber(Guid projectId)
+        {
+            var lastArea = await this.dbContext.Areas.Where(x=>x.ProjectId == projectId).OrderBy(x => x.Number).LastOrDefaultAsync();
+
+            return lastArea == null ? 0 : lastArea.Number;
+        }
+
+        public async Task<int> GetLastProjectMilestoneNumber(Guid projectId)
+        {
+            var lastMilestone = await this.dbContext.Milestones.Where(x => x.ProjectId == projectId).OrderBy(x => x.Number).LastOrDefaultAsync();
+
+            return lastMilestone == null ? 0 : lastMilestone.Number;
+        }
+
+        public async Task<int> GetLastProjectStatusNumber(Guid projectId)
+        {
+            var lastStatus = await this.dbContext.Status.Where(x => x.ProjectId == projectId).OrderBy(x => x.Number).LastOrDefaultAsync();
+
+            return lastStatus == null ? 0 : lastStatus.Number;
         }
     }
 }

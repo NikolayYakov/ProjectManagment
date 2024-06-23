@@ -1,4 +1,4 @@
-﻿@model ProjectManagment.Models.ProjectStatus
+﻿@model ProjectManagment.Models.CreateProjectElementModel
 
 @{
     ViewBag.Title = "Create Status";
@@ -7,11 +7,7 @@
 
 <h2>Create New Status</h2>
 
-<form asp-action="CreateStatus" method="post">
-    <div class="form-group">
-        <label for="Number">Number</label>
-        <input type="number" class="form-control" id="Number" name="Number" />
-    </div>
+<form action="@Url.Content($"~/project/{@Model.ProjectId}/status/create")" method="post">
     <div class="form-group">
         <label for="Name">Name</label>
         <input type="text" class="form-control" id="Name" name="Name" />
@@ -21,7 +17,7 @@
         <textarea class="form-control" id="Description" name="Description" rows="3"></textarea>
     </div>
     <button type="submit" class="btn btn-primary">Create</button>
-    <a href="@Url.Action("AllStatuses", "Projects")" class="btn btn-secondary">Cancel</a>
+    <a href="~/project/@Model.ProjectId/status/all" class="btn btn-secondary">Cancel</a>
 </form>
 
 <style>

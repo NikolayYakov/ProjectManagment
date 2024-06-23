@@ -8,28 +8,25 @@ namespace ProjectManagment.Controllers
 {
     public class LabelController : Controller
     {
-        public LabelController()
+        private IssueElementRepository issueElementRepository;
+        public LabelController(IssueElementRepository issueElementRepository)
         {
-            
+
+            this.issueElementRepository = issueElementRepository;
+
         }
 
         [HttpGet("project/{id}/label/all")]
-        public IActionResult All(Guid id, int page = 1, string searchTerm = "")
+        public async Task<IActionResult> All(Guid id, int page = 1, string searchTerm = "")
         {
-            // Simulate data for demonstration purposes
-            var labels = new List<ProjectLabel>
-            {
-                new ProjectLabel { Number = 1, Name = "Bug", Description = "Indicates a bug", LabelId = new Guid() },
-                new ProjectLabel { Number = 2, Name = "Feature", Description = "Indicates a new feature", LabelId = new Guid() },
-                new ProjectLabel { Number = 3, Name = "Enhancement", Description = "Indicates an enhancement", LabelId = new Guid() }
-            };
+            var labels = await this.issueElementRepository.GetAllProjectLabels(id);
 
             var model = new ProjectLabelViewModel
             {
                 PageNumber = page,
                 TotalPages = 1, // Assuming there's only one page for demonstration
                 SearchTerm = searchTerm,
-                Labels = labels,
+                Labels = labels.ToList(),
                 ProjectId = id
             };
 
@@ -43,43 +40,43 @@ namespace ProjectManagment.Controllers
         }
 
         [HttpPost("project/{id}/label/create")]
-        public IActionResult Create(Guid id, CreateIssueElementReq req)
+        public async Task<IActionResult> Create(Guid id, CreateIssueElementReq req)
         {
+            var lastLabelNumber = await issueElementRepository.GetLastProjectLabelNumber(id);
+            await this.issueElementRepository.AddLabelToProject(req, id, lastLabelNumber);
+
             string url = Url.Content($"~/project/{id}/label/all");
             return Redirect(url);
         }
 
-        [HttpGet("project/{id}/label/{labelId}/edit")]
-        public IActionResult Edit(Guid id, Guid labelId)
+        [HttpGet("project/{projectId}/label/{labelId}/edit")]
+        public async Task<IActionResult> Edit(Guid projectId, Guid labelId)
         {
-            //var label = labels.FirstOrDefault(l => l.Number == id);
-            //if (label == null)
-            //{
-            //    return NotFound();
-            //}
+            var label = await this.issueElementRepository.GetLabelFromProject(labelId);
 
-            return View(new ProjectLabel { LabelId = new Guid(), Number = 0, Name="Test", Description = "Test"});
+            return View(new ProjectLabel(projectId, label.Id, label.Name, label.Description, label.Number));
         }
 
         [HttpPost("project/{id}/label/{labelId}/edit")]
-        public IActionResult EditLabel(Guid id, Guid labelId, CreateIssueElementReq req)
+        public async Task<IActionResult> Edit(Guid id, Guid labelId, CreateIssueElementReq req)
         {
+            var label = await this.issueElementRepository.GetLabelFromProject(labelId);
+            label.Name = req.Name;
+            label.Description = req.Description;
+
+            await this.issueElementRepository.UpdateLabel(label);
+
             string url = Url.Content($"~/project/{id}/label/all");
             return Redirect(url);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete(Guid labelId, Guid projectId)
         {
-            //var project = await this.projectRepository.GetProject(projectReq.Id);
+            var label = await this.issueElementRepository.GetLabelFromProject(labelId);
+            await this.issueElementRepository.DeleteLabelFromProject(label);
 
-            //if (project != null)
-            //{
-            //    await this.projectRepository.DeleteProject(project);
-            //}
-
-
-            string url = Url.Content($"~/project/{id}/label/all");
+            string url = Url.Content($"~/project/{projectId}/label/all");
             return Redirect(url);
         }
     }
