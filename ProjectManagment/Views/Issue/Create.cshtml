@@ -10,68 +10,77 @@
         <h2>Create New Issue</h2>
     </div>
 
-    <form action="@Url.Content($"~/project/{@Model.ProjectId}//create") method="post">
+    <form asp-action="Create" method="post">
         <div class="issue-details">
             <div class="issue-body">
                 <div class="form-group">
-                    <label for="Title">Title</label>
-                    <input type="text" class="form-control form-control-sm" asp-for="Title" placeholder="Enter issue title" />
+                    <label asp-for="Title"></label>
+                    <input asp-for="Title" class="form-control form-control-sm" placeholder="Enter issue title" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
-                    <label for="Body">Description</label>
-                    <textarea class="form-control form-control-sm" asp-for="Body" rows="5" placeholder="Describe the issue"></textarea>
+                    <label asp-for="Body"></label>
+                    <textarea asp-for="Body" class="form-control form-control-sm" rows="5" placeholder="Describe the issue"></textarea>
+                    <span asp-validation-for="Body" class="text-danger"></span>
                 </div>
 
                 <div class="issue-footer">
                     <button type="submit" class="btn btn-primary">Create</button>
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="window.location.href='/issue/allIssues'">Cancel</button>
+                    <a asp-action="AllIssues" class="btn btn-secondary btn-sm">Cancel</a>
                 </div>
             </div>
 
             <div class="issue-meta">
                 <div class="meta-section">
-                    <label for="Assignees">Assignees</label>
-                    <select class="form-control form-control-sm select2" asp-for="Assignees" asp-items="@(new SelectList(Model.AvailableAssignees))" multiple="multiple">
+                    <label asp-for="Assignees"></label>
+                    <select asp-for="Assignees" asp-items="@(new SelectList(Model.AvailableAssignees))" class="form-control form-control-sm select2" multiple="multiple">
+                        <option value="" disabled selected>Select assignees</option>
                     </select>
+                    <span asp-validation-for="Assignees" class="text-danger"></span>
                 </div>
                 <div class="meta-section">
-                    <label for="Area">Area</label>
-                    <select class="form-control form-control-sm" asp-for="Area" asp-items="@(new SelectList(Model.AvailableAreas.Select(x => new SelectListItem { Text = x.Name, Value = x.AreaId.ToString() }), "Value", "Text"))">
+                    <label asp-for="Area"></label>
+                    <select asp-for="Area" asp-items="@(new SelectList(Model.AvailableAreas, "AreaId", "Name"))" class="form-control form-control-sm">
                         <option value="" disabled selected>Select an area</option>
                     </select>
+                    <span asp-validation-for="Area" class="text-danger"></span>
                 </div>
                 <div class="meta-section">
-                    <label for="Labels">Labels</label>
-                    <select class="form-control form-control-sm select2" asp-for="Labels" asp-items="@(new SelectList(Model.AvailableLabels))" multiple="multiple">
+                    <label asp-for="Labels"></label>
+                    <select asp-for="Labels" asp-items="@(new SelectList(Model.AvailableLabels))" class="form-control form-control-sm select2" multiple="multiple">
+                        <option value="" disabled selected>Select labels</option>
                     </select>
+                    <span asp-validation-for="Labels" class="text-danger"></span>
                 </div>
                 <div class="meta-section">
-                    <label for="Milestone">Milestone</label>
-                    <select class="form-control form-control-sm" asp-for="Milestone" asp-items="@(new SelectList(Model.AvailableMilestones, "10", "text"))">
+                    <label asp-for="Milestone"></label>
+                    <select asp-for="Milestone" asp-items="@(new SelectList(Model.AvailableMilestones, "MilestoneId", "Title"))" class="form-control form-control-sm">
                         <option value="" disabled selected>Select a milestone</option>
                     </select>
+                    <span asp-validation-for="Milestone" class="text-danger"></span>
                 </div>
                 <div class="meta-section">
-                    <label for="Status">Status</label>
-                    <select class="form-control form-control-sm" asp-for="Status" asp-items="@(new SelectList(Model.AvailableStatuses))">
+                    <label asp-for="Status"></label>
+                    <select asp-for="Status" asp-items="@(new SelectList(Model.AvailableStatuses))" class="form-control form-control-sm">
                         <option value="" disabled selected>Select a status</option>
                     </select>
+                    <span asp-validation-for="Status" class="text-danger"></span>
                 </div>
             </div>
         </div>
     </form>
 </div>
 
-<script>
-    $(document).ready(function () {
-        $('.select2').select2({
-            tags: true,
-            tokenSeparators: [','],
-            width: '100%'
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2({
+                tags: true,
+                tokenSeparators: [','],
+                width: '100%'
+            });
         });
-    });
-</script>
+    </script>
 
 <style>
     body {
