@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Build.Evaluation;
+using Microsoft.CodeAnalysis;
 using ProjectManagment.Data;
 using ProjectManagment.Models;
 using ProjectManagment.Repositories;
@@ -8,26 +10,28 @@ namespace ProjectManagment.Controllers
     public class IssueController : Controller
     {
         private IssueRepository issueRepository;
-        public IssueController(IssueRepository issuesRepository)
+        private IssueElementRepository issueElementRepository;
+        public IssueController(IssueRepository issuesRepository, IssueElementRepository issueElementRepository)
         {
             this.issueRepository = issueRepository;
+            this.issueElementRepository = issueElementRepository;
         }
 
-        private List<IssueModel> GetIssues()
+        private List<IssueModel> GetIssues(Guid projectId)
         {
             //issueRepository.GetIssuesInProject();
             return new List<IssueModel>
             {
-                new IssueModel { IssueNumber = 1, Title = "Issue A", Labels = "Bug", Assignees = "John Doe", Milestone = "Milestone 1", Area = "Backend", Status = "Open" },
-                new IssueModel { IssueNumber = 2, Title = "Issue B", Labels = "Feature", Assignees = "Jane Smith", Milestone = "Milestone 2", Area = "Frontend", Status = "Closed" },
+                new IssueModel { IssueNumber = 1, Title = "Issue A", Labels = "Bug", Assignees = "John Doe", Milestone = "Milestone 1", Area = "Backend", Status = "Open", ProjectId = projectId, IssueId = projectId },
+                new IssueModel { IssueNumber = 2, Title = "Issue B", Labels = "Feature", Assignees = "Jane Smith", Milestone = "Milestone 2", Area = "Frontend", Status = "Closed", ProjectId = projectId, IssueId = projectId  },
                 // Add more issues here
             };
         }
 
-        [HttpGet("project/{id}/issue/all")]
-        public ActionResult All(Guid id, string searchTerm, int page = 1, int pageSize = 10)
+        [HttpGet("project/{projectId}/issue/all")]
+        public ActionResult All(Guid projectId, string searchTerm, int page = 1, int pageSize = 10)
         {
-            var allIssues = GetIssues();
+            var allIssues = GetIssues(projectId);
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
@@ -45,6 +49,7 @@ namespace ProjectManagment.Controllers
 
             var viewModel = new IssueViewModel
             {
+                ProjectId = projectId,
                 Issues = issues,
                 SearchTerm = searchTerm,
                 PageNumber = page,
@@ -55,12 +60,14 @@ namespace ProjectManagment.Controllers
             return View(viewModel);
         }
 
-        public IActionResult Details(int id)
+        [HttpGet("project/{projectId}/issue/{issueId}/details")]
+        public IActionResult Details(Guid projectId, Guid issueId)
         {
             // Example issue data
             var issue = new IssueDetailsModel
             {
-                Id = id,
+                IssueId = issueId,
+                ProjectId = projectId,
                 Title = "Example Issue",
                 Body = "This is a sample issue description.",
                 Assignee = "John Doe",
@@ -78,7 +85,8 @@ namespace ProjectManagment.Controllers
             return View(issue);
         }
 
-        public IActionResult Edit(int id)
+        [HttpGet("project/{projectId}/issue/{issueId}/edit")]
+        public IActionResult Edit(int projectId)
         {
             //var issue = Issues.FirstOrDefault(i => i.Id == id);
             //if (issue == null)
@@ -98,27 +106,32 @@ namespace ProjectManagment.Controllers
                 AvailableAssignees = new List<string> { "Constant Assignee", "John Doe", "Jane Smith" },
                 AvailableAreas = new List<string> { "Backend", "Frontend", "UI/UX" },
                 AvailableLabels = new List<string> { "bug", "documentation", "enhancement" },
-                AvailableMilestones = new List<string> { "Sprint 1", "Sprint 2", "Release 1.0" }
+                AvailableMilestones = new List<string> { "Sprint 1", "Sprint 2", "Release 1.0" },
+                AvailableStatuses = new List<string> { "Sprint 1", "Sprint 2", "Release 1.0" }
             };
 
             return View(model);
         }
 
-        public IActionResult Create()
+        [HttpGet("project/{projectId}/issue/create")]
+        public async Task<IActionResult> Create(Guid projectId)
         {
+            var availableAssignees = await this.issueElementRepository.GetAllProjectAreas(projectId);
             var model = new IssueCreateModel
             {
-                AvailableAssignees = new List<string>(), // Initialize with empty list
-                AvailableAreas = new List<string>(), // Initialize with empty list
-                AvailableLabels = new List<string>(), // Initialize with empty list
-                AvailableMilestones = new List<string>() // Initialize with empty list
+                ProjectId = projectId,
+                AvailableAssignees = new List<string>(),
+                AvailableAreas = availableAssignees.ToList(),
+                AvailableLabels = new List<ProjectLabel>(),
+                AvailableStatuses = new List<ProjectStatus>(),
+                AvailableMilestones = new List<ProjectMilestone>()
             };
 
             return View(model);
         }
 
         // POST: /Issue/Create
-        [HttpPost]
+        [HttpPost("project/{projectId}/issue/create")]
         public IActionResult Create(IssueCreateModel model)
         {
             if (ModelState.IsValid)

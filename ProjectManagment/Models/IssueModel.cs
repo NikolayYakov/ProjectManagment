@@ -2,6 +2,8 @@
 {
     public class IssueModel
     {
+        public Guid IssueId { get; set; }
+        public Guid ProjectId { get; set; }
         public int IssueNumber { get; set; }
         public string Title { get; set; }
         public string Labels { get; set; }

@@ -7,10 +7,13 @@
 
 <h2>Issues</h2>
 
-<form method="get" action="@Url.Action("AllIssues")">
-    <input type="text" name="searchTerm" value="@Model.SearchTerm" placeholder="Search issues..." />
-    <button type="submit">Search</button>
-</form>
+<div class="header">
+    <form method="get" action="@Url.Action("all")">
+        <input type="text" name="searchTerm" value="@Model.SearchTerm" placeholder="Search issues..." />
+        <button type="submit">Search</button>
+    </form>
+    <a class="create-button" href="~/project/@Model.ProjectId/issue/create">Create Issue</a>
+</div>
 
 <table class="issues-table">
     <thead>
@@ -27,7 +30,7 @@
     <tbody>
         @foreach (var issue in Model.Issues)
         {
-            <tr onclick="location.href='@Url.Action("Details", "Issue", new { id = issue.IssueNumber })'">
+            <tr onclick="navigateToIssue('@Model.ProjectId', '@issue.IssueId')">
                 <td>@issue.IssueNumber</td>
                 <td>@issue.Title</td>
                 <td>@issue.Labels</td>
@@ -52,12 +55,26 @@
     }
 </div>
 
+<script type="text/javascript">
+    function navigateToIssue(projectId, issueId) {
+        var url = '/project/' + projectId + '/issue/' + issueId + '/details';
+        location.href = url;
+    }
+</script>
 
 <style>
     /* Ensure no conflicting styles */
     .container-fluid {
         padding-left: 0;
         padding-right: 0;
+    }
+
+    /* Header styles */
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
     }
 
     /* Table and pagination styles */
@@ -89,6 +106,21 @@
     }
 
     form {
-        margin-bottom: 20px;
+        margin-bottom: 0;
     }
+
+    /* Create button styles */
+    .create-button {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: green;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+    }
+
+        .create-button:hover {
+            background-color: #0056b3;
+        }
 </style>

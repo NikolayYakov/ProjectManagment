@@ -9,8 +9,8 @@
     <div class="issue-header">
         <h1>@Model.Title</h1>
         <div class="issue-actions">
-            <a href="/issue/edit/@Model.Id" class="btn btn-primary">Edit</a>
-            <a href="/issue/create" class="btn btn-success">New Issue</a>
+            <a href="~/project/@Model.ProjectId/issue/{@Model.IssueId}/edit" class="btn btn-primary">Edit</a>
+            <a href="~/project/@Model.ProjectId/issue/create" class="btn btn-success">New Issue</a>
         </div>
     </div>
 

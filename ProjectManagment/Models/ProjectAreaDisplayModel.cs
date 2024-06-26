@@ -27,7 +27,7 @@ namespace ProjectManagment.Models
         }
 
         public Guid ProjectId { get; set; }
-        public Guid AreaId { get; set; }
+        public Guid AreaId  { get; set; }
         public int Number { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }

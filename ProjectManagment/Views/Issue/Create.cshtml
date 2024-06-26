@@ -7,19 +7,25 @@
 
 <div class="issue-details-container">
     <div class="issue-header">
+        <h2>Create New Issue</h2>
     </div>
 
-    <form asp-action="Create" method="post">
+    <form action="@Url.Content($"~/project/{@Model.ProjectId}//create") method="post">
         <div class="issue-details">
             <div class="issue-body">
                 <div class="form-group">
                     <label for="Title">Title</label>
-                    <input type="text" class="form-control form-control-sm" asp-for="Title" />
+                    <input type="text" class="form-control form-control-sm" asp-for="Title" placeholder="Enter issue title" />
                 </div>
 
                 <div class="form-group">
                     <label for="Body">Description</label>
-                    <textarea class="form-control form-control-sm" asp-for="Body" rows="5"></textarea>
+                    <textarea class="form-control form-control-sm" asp-for="Body" rows="5" placeholder="Describe the issue"></textarea>
+                </div>
+
+                <div class="issue-footer">
+                    <button type="submit" class="btn btn-primary">Create</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="window.location.href='/issue/allIssues'">Cancel</button>
                 </div>
             </div>
 
@@ -31,7 +37,7 @@
                 </div>
                 <div class="meta-section">
                     <label for="Area">Area</label>
-                    <select class="form-control form-control-sm" asp-for="Area" asp-items="@(new SelectList(Model.AvailableAreas))">
+                    <select class="form-control form-control-sm" asp-for="Area" asp-items="@(new SelectList(Model.AvailableAreas.Select(x => new SelectListItem { Text = x.Name, Value = x.AreaId.ToString() }), "Value", "Text"))">
                         <option value="" disabled selected>Select an area</option>
                     </select>
                 </div>
@@ -42,16 +48,17 @@
                 </div>
                 <div class="meta-section">
                     <label for="Milestone">Milestone</label>
-                    <select class="form-control form-control-sm" asp-for="Milestone" asp-items="@(new SelectList(Model.AvailableMilestones))">
+                    <select class="form-control form-control-sm" asp-for="Milestone" asp-items="@(new SelectList(Model.AvailableMilestones, "10", "text"))">
                         <option value="" disabled selected>Select a milestone</option>
                     </select>
                 </div>
+                <div class="meta-section">
+                    <label for="Status">Status</label>
+                    <select class="form-control form-control-sm" asp-for="Status" asp-items="@(new SelectList(Model.AvailableStatuses))">
+                        <option value="" disabled selected>Select a status</option>
+                    </select>
+                </div>
             </div>
-        </div>
-
-        <div class="issue-footer">
-            <button type="submit" class="btn btn-primary">Create</button>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="window.location.href='/issue/allIssues'">Cancel</button>
         </div>
     </form>
 </div>
@@ -75,12 +82,13 @@
     }
 
     .issue-details-container {
-        max-width: 1000px;
+        max-width: 800px;
         margin: 20px auto;
         padding: 20px;
         background-color: #fff;
         border: 1px solid #ddd;
-        border-radius: 5px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .issue-header {
@@ -90,62 +98,59 @@
         margin-bottom: 20px;
     }
 
-    .issue-actions .btn {
-        margin-left: 10px;
-    }
+        .issue-header h2 {
+            margin: 0;
+            font-size: 24px;
+            color: #333;
+        }
 
     .issue-details {
         display: flex;
+        flex-wrap: wrap;
     }
 
     .issue-body {
         flex: 1;
         margin-right: 20px;
+        min-width: 300px;
     }
 
     .issue-meta {
-        flex: 0 0 200px;
+        flex: 0 0 250px;
+        min-width: 250px;
     }
 
-    .meta-section {
-        margin-bottom: 10px; /* Reduced margin-bottom */
+    .form-group {
+        margin-bottom: 15px;
     }
 
-        .meta-section label {
+        .form-group label {
             display: block;
             margin-bottom: 5px;
-            font-size: 12px; /* Reduced font size */
-            color: #333;
-        }
-
-        .meta-section input,
-        .meta-section textarea,
-        .meta-section select {
-            width: 100%;
-            padding: 6px; /* Reduced padding */
-            font-size: 12px; /* Reduced font size */
+            font-size: 14px;
             color: #555;
-            border: 1px solid #ddd;
-            border-radius: 3px;
         }
 
-        .meta-section ul {
-            list-style-type: none;
-            padding-left: 0;
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            color: #333;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
-            .meta-section ul li {
-                background-color: #e9ecef;
-                border-radius: 2px;
-                padding: 2px 5px;
-                display: inline-block;
-                margin: 2px 0;
-            }
+    .meta-section {
+        margin-bottom: 15px;
+    }
 
     .issue-footer {
         display: flex;
         justify-content: flex-start;
-        margin-top: 10px; /* Reduced margin-top */
+        margin-top: 10px;
     }
 
         .issue-footer .btn {
@@ -153,13 +158,26 @@
         }
 
     .select2-container--default .select2-selection--multiple {
-        min-height: 34px;
-        border-radius: 3px;
-        border: 1px solid #ddd;
+        min-height: 38px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
     }
 
         .select2-container--default .select2-selection--multiple .select2-selection__choice {
-            padding: 2px 5px;
+            padding: 5px;
             font-size: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
         }
+
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            color: #fff;
+            margin-right: 5px;
+        }
+
+            .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+                background-color: #0056b3;
+            }
 </style>
