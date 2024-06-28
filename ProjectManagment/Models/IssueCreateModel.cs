@@ -14,7 +14,7 @@ namespace ProjectManagment.Models
         public string Milestone { get; set; }
         public string Status { get; set; }
 
-        public List<string> AvailableAssignees { get; set; }
+        public List<UserModel> AvailableAssignees { get; set; }
         public List<ProjectArea> AvailableAreas { get; set; }
         public List<ProjectLabel> AvailableLabels { get; set; }
         public List<ProjectMilestone> AvailableMilestones { get; set; }

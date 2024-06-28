@@ -27,15 +27,14 @@
 
                 <div class="issue-footer">
                     <button type="submit" class="btn btn-primary">Create</button>
-                    <a asp-action="AllIssues" class="btn btn-secondary btn-sm">Cancel</a>
+                    <a href="~/project/@Model.ProjectId/issue/all" class="btn btn-secondary btn-sm">Cancel</a>
                 </div>
             </div>
 
             <div class="issue-meta">
                 <div class="meta-section">
                     <label asp-for="Assignees"></label>
-                    <select asp-for="Assignees" asp-items="@(new SelectList(Model.AvailableAssignees))" class="form-control form-control-sm select2" multiple="multiple">
-                        <option value="" disabled selected>Select assignees</option>
+                    <select asp-for="Assignees" asp-items="@(new SelectList(Model.AvailableAssignees, "UserId", "Name"))" class="form-control form-control-sm select2" multiple="multiple">
                     </select>
                     <span asp-validation-for="Assignees" class="text-danger"></span>
                 </div>
@@ -48,21 +47,20 @@
                 </div>
                 <div class="meta-section">
                     <label asp-for="Labels"></label>
-                    <select asp-for="Labels" asp-items="@(new SelectList(Model.AvailableLabels))" class="form-control form-control-sm select2" multiple="multiple">
-                        <option value="" disabled selected>Select labels</option>
+                    <select asp-for="Labels" asp-items="@(new SelectList(Model.AvailableLabels, "LabelId", "Name"))" class="form-control form-control-sm select2" multiple="multiple">
                     </select>
                     <span asp-validation-for="Labels" class="text-danger"></span>
                 </div>
                 <div class="meta-section">
                     <label asp-for="Milestone"></label>
-                    <select asp-for="Milestone" asp-items="@(new SelectList(Model.AvailableMilestones, "MilestoneId", "Title"))" class="form-control form-control-sm">
+                    <select asp-for="Milestone" asp-items="@(new SelectList(Model.AvailableMilestones, "MilestoneId", "Name"))" class="form-control form-control-sm">
                         <option value="" disabled selected>Select a milestone</option>
                     </select>
                     <span asp-validation-for="Milestone" class="text-danger"></span>
                 </div>
                 <div class="meta-section">
                     <label asp-for="Status"></label>
-                    <select asp-for="Status" asp-items="@(new SelectList(Model.AvailableStatuses))" class="form-control form-control-sm">
+                    <select asp-for="Status" asp-items="@(new SelectList(Model.AvailableStatuses, "StatusId", "Name"))" class="form-control form-control-sm">
                         <option value="" disabled selected>Select a status</option>
                     </select>
                     <span asp-validation-for="Status" class="text-danger"></span>

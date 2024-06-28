@@ -1,6 +1,7 @@
 ﻿using ProjectManagment.Areas.Identity.Data;
 using ProjectManagment.Data;
 using ProjectManagment.DTOs.Requests;
+using ProjectManagment.Models;
 
 namespace ProjectManagment.Repositories
 {
@@ -22,7 +23,7 @@ namespace ProjectManagment.Repositories
             return dbContext.Issues.FirstOrDefault(x => x.Id == issueId && !x.IsDeleted);
         }
 
-        public async Task CreateIssue(CreateIssueReq issueReq, string userId)
+        public async Task<Guid> CreateIssue(IssueCreateModel issueReq, string userId)
         {
             Issue issue = new Issue()
             {
@@ -31,13 +32,14 @@ namespace ProjectManagment.Repositories
                 Body = issueReq.Body,
                 OwnerId = userId,
                 ProjectId = issueReq.ProjectId,
-                StatusId = issueReq.StatusId,
-                AreaId = issueReq.AreaId,
-                IsEpic = issueReq.isEpic
+                StatusId = Guid.Parse(issueReq.Status),
+                AreaId = Guid.Parse(issueReq.Area),
+                MilestoneId = Guid.Parse(issueReq.Milestone),
             };
-
+            
             dbContext.Issues.Add(issue);
             await dbContext.SaveChangesAsync();
+            return issue.Id;
         }
 
         public async Task DeleteIssue(Issue issue)
@@ -86,17 +88,40 @@ namespace ProjectManagment.Repositories
             dbContext.SaveChanges();
         }
 
-        public async Task AddLabel(Guid issueId, Guid labelId)
+        public async Task AddLabels(Guid issueId, List<string> labelsIds)
         {
-            LabelsToIssues labelToIssue = new LabelsToIssues()
+            List<LabelsToIssues> labelsToIssues = new List<LabelsToIssues>();
+            foreach (var labelId in labelsIds)
             {
-                Id = new Guid(),
-                LabelId = labelId,
-                IssueId = issueId
-            };
+                var labelGuid = Guid.Parse(labelId);
 
-            dbContext.LabelsToIssues.Add(labelToIssue);
+                if(await ReAddIssueLable(issueId, labelGuid))
+                {
+                    continue;
+                }
+
+                LabelsToIssues labelToIssue = new LabelsToIssues()
+                {
+                    Id = new Guid(),
+                    LabelId = labelGuid,
+                    IssueId = issueId
+                };
+                labelsToIssues.Add(labelToIssue);
+            }
+
+            dbContext.LabelsToIssues.AddRange(labelsToIssues);
             await dbContext.SaveChangesAsync();
+        }
+
+        public async Task<bool> ReAddIssueLable(Guid issueId, Guid labelId)
+        {
+            var issueLabel = dbContext.LabelsToIssues.FirstOrDefault(x => x.IssueId == issueId && x.IssueId == issueId);
+            if(issueLabel != null)
+            {
+                issueLabel.IsRemoved = false;
+                return true;
+            }
+            return false;
         }
 
         public async Task RemoveLabel(LabelsToIssues labelToIssue)

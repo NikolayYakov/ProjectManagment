@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using ProjectManagment.Data;
 using ProjectManagment.Models;
 using ProjectManagment.Repositories;
+using System.Security.Claims;
 
 namespace ProjectManagment.Controllers
 {
@@ -11,10 +12,12 @@ namespace ProjectManagment.Controllers
     {
         private IssueRepository issueRepository;
         private IssueElementRepository issueElementRepository;
-        public IssueController(IssueRepository issuesRepository, IssueElementRepository issueElementRepository)
+        private ProjectRepository projectRepository;
+        public IssueController(IssueRepository issuesRepository, IssueElementRepository issueElementRepository, ProjectRepository projectRepository)
         {
-            this.issueRepository = issueRepository;
+            this.issueRepository = issuesRepository;
             this.issueElementRepository = issueElementRepository;
+            this.projectRepository = projectRepository;
         }
 
         private List<IssueModel> GetIssues(Guid projectId)
@@ -117,14 +120,19 @@ namespace ProjectManagment.Controllers
         public async Task<IActionResult> Create(Guid projectId)
         {
             var availableAssignees = await this.issueElementRepository.GetAllProjectAreas(projectId);
+            var availableMilestone = await this.issueElementRepository.GetAllProjectMilestones(projectId);
+            var availalbeStatuses = await this.issueElementRepository.GetAllProjectStatuses(projectId);
+            var availalbeLabels = await this.issueElementRepository.GetAllProjectLabels(projectId);
+            var availalbeAssignees = await this.projectRepository.GetAllProjectMembers(projectId);
+
             var model = new IssueCreateModel
             {
                 ProjectId = projectId,
-                AvailableAssignees = new List<string>(),
+                AvailableAssignees = availalbeAssignees.ToList(),
                 AvailableAreas = availableAssignees.ToList(),
-                AvailableLabels = new List<ProjectLabel>(),
-                AvailableStatuses = new List<ProjectStatus>(),
-                AvailableMilestones = new List<ProjectMilestone>()
+                AvailableLabels = availalbeLabels.ToList(),
+                AvailableStatuses = availalbeStatuses.ToList(),
+                AvailableMilestones = availableMilestone.ToList(),
             };
 
             return View(model);
@@ -132,15 +140,16 @@ namespace ProjectManagment.Controllers
 
         // POST: /Issue/Create
         [HttpPost("project/{projectId}/issue/create")]
-        public IActionResult Create(IssueCreateModel model)
+        public async Task<IActionResult> Create(IssueCreateModel model)
         {
             if (ModelState.IsValid)
             {
-                // Logic to save the new issue to the database
-                // For example:
-                // _issueRepository.Create(model);
-                // Where _issueRepository is a service responsible for handling issue-related operations
-                return RedirectToAction("Index", "Home"); // Redirect to home page or any other appropriate action
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var issueId = await this.issueRepository.CreateIssue(model, userId);
+                await this.issueRepository.AddLabels(issueId, model.Labels);
+
+                string url = Url.Content($"~/project/{model.ProjectId}/issue/all");
+                return Redirect(url);
             }
             // If ModelState is not valid, return back to the create page with the model
             return View(model);
