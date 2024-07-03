@@ -32,13 +32,39 @@ namespace ProjectManagment.Controllers
         }
 
         [HttpGet("project/{projectId}/issue/all")]
-        public ActionResult All(Guid projectId, string searchTerm, int page = 1, int pageSize = 10)
+        public async Task<ActionResult> All(Guid projectId, string searchTerm, int page = 1, int pageSize = 10)
         {
-            var allIssues = GetIssues(projectId);
+            var allIssues = await this.issueRepository.GetIssuesInProject(projectId);
+
+            var issueModels = new List<IssueModel>();
+            foreach (var issue in allIssues)
+            {
+                var issueAssignees = await this.issueRepository.GetIssueAssignees(issue.Id);
+                var issueLabels = await this.issueRepository.GetIssueLabels(issue.Id);
+
+                var list =  issueLabels.ToList();
+
+                var issueModel = new IssueModel
+                {
+                    IssueNumber = 0,
+                    IssueId = issue.Id,
+                    Title = issue.Title,
+                    Assignees = string.Join(", ", issueAssignees.Select(x=>x.Name)),
+                    Labels = string.Join(", ", issueLabels.Select(x=>x.Name)),
+                    Milestone = issue.Milestone.Name,
+                    Status = issue.Status.Name,
+                    Area = issue.Area.Name,
+                    ProjectId = issue.ProjectId,
+                };
+
+                issueModels.Add(issueModel);
+            }
+
+            
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                allIssues = allIssues.Where(i => i.Title.Contains(searchTerm) ||
+                issueModels = issueModels.Where(i => i.Title.Contains(searchTerm) ||
                                                  i.Labels.Contains(searchTerm) ||
                                                  i.Assignees.Contains(searchTerm) ||
                                                  i.Milestone.Contains(searchTerm) ||
@@ -46,14 +72,14 @@ namespace ProjectManagment.Controllers
                                                  i.Status.Contains(searchTerm)).ToList();
             }
 
-            var totalIssues = allIssues.Count;
+            var totalIssues = issueModels.Count;
             var totalPages = (int)Math.Ceiling((double)totalIssues / pageSize);
             var issues = allIssues.Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
             var viewModel = new IssueViewModel
             {
                 ProjectId = projectId,
-                Issues = issues,
+                Issues = issueModels,
                 SearchTerm = searchTerm,
                 PageNumber = page,
                 PageSize = pageSize,
@@ -142,15 +168,16 @@ namespace ProjectManagment.Controllers
         [HttpPost("project/{projectId}/issue/create")]
         public async Task<IActionResult> Create(IssueCreateModel model)
         {
-            if (ModelState.IsValid)
-            {
+            //if (ModelState.IsValid)
+            //{
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var issueId = await this.issueRepository.CreateIssue(model, userId);
                 await this.issueRepository.AddLabels(issueId, model.Labels);
+                await this.issueRepository.AssignUser(issueId, model.Assignees);
 
                 string url = Url.Content($"~/project/{model.ProjectId}/issue/all");
                 return Redirect(url);
-            }
+            //}
             // If ModelState is not valid, return back to the create page with the model
             return View(model);
         }

@@ -1,4 +1,5 @@
-﻿using ProjectManagment.Areas.Identity.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using ProjectManagment.Areas.Identity.Data;
 using ProjectManagment.Data;
 using ProjectManagment.DTOs.Requests;
 using ProjectManagment.Models;
@@ -56,30 +57,56 @@ namespace ProjectManagment.Repositories
 
         public async Task<IQueryable<Issue>> GetIssuesInProject(Guid projectId)
         {
-            return dbContext.Issues.Where(x => x.ProjectId == projectId);
+            return dbContext.Issues
+                .Where(x => x.ProjectId == projectId)
+                .Include(x => x.Labels).Include(x => x.Milestone).Include(x=>x.Assignees).Include(x=>x.Area).Include(x=>x.Status);
         }
 
-        public async Task<IQueryable<Label>> GetIssueLabels(Guid issueId)
+        public async Task<IQueryable<IssueLabelDTO>> GetIssueLabels(Guid issueId)
         {
-            return dbContext.LabelsToIssues.Where(x => x.IssueId == issueId).Select(x=>x.Label);
+            return dbContext.LabelsToIssues.Where(x => x.IssueId == issueId && !x.IsRemoved).Select(x => new IssueLabelDTO { Id = x.LabelId, Name = x.Label.Name }) ;
         }
 
-        public async Task<IQueryable<ApplicationUser>> GetIssueAssignees(Guid issueId)
+        public async Task<IQueryable<IssueAssigneeDTO>> GetIssueAssignees(Guid issueId)
         {
-            return dbContext.UsersToIssues.Where(x => x.IssueId == issueId).Select(x => x.User);
+            return dbContext.UsersToIssues.Where(x => x.IssueId == issueId && !x.IsRemoved).Select(x => new IssueAssigneeDTO { Id= x.UserId, Name = x.User.UserName});
         }
 
-        public async Task AssignUser(Guid issueId, string userId)
+        public async Task AssignUser(Guid issueId, List<string> assigneesIds)
         {
-            UsersToIssues userToIssue = new UsersToIssues()
+            List<UsersToIssues> usersToIssues = new List<UsersToIssues>();
+            foreach (var assigneeId in assigneesIds)
             {
-                Id = new Guid(),
-                UserId = userId,
-                IssueId = issueId
-            };
 
-            dbContext.UsersToIssues.Add(userToIssue);
+                if (await ReAssignUser(issueId, assigneeId))
+                {
+                    continue;
+                }
+
+                UsersToIssues userToIssue = new UsersToIssues()
+                {
+                    Id = new Guid(),
+                    UserId = assigneeId,
+                    IssueId = issueId
+                };
+
+                usersToIssues.Add(userToIssue);
+            }
+
+            dbContext.UsersToIssues.AddRange(usersToIssues);
             await dbContext.SaveChangesAsync();
+        }
+
+        public async Task<bool> ReAssignUser(Guid issueId, string userId)
+        {
+            var issueAssignee = dbContext.UsersToIssues.FirstOrDefault(x => x.IssueId == issueId && x.UserId == userId);
+            if (issueAssignee != null)
+            {
+                issueAssignee.IsRemoved = false;
+                return true;
+            }
+
+            return false;
         }
 
         public async Task UnAssignUser(UsersToIssues userToIssue)
@@ -115,7 +142,7 @@ namespace ProjectManagment.Repositories
 
         public async Task<bool> ReAddIssueLable(Guid issueId, Guid labelId)
         {
-            var issueLabel = dbContext.LabelsToIssues.FirstOrDefault(x => x.IssueId == issueId && x.IssueId == issueId);
+            var issueLabel = dbContext.LabelsToIssues.FirstOrDefault(x => x.IssueId == issueId && x.LabelId == labelId);
             if(issueLabel != null)
             {
                 issueLabel.IsRemoved = false;

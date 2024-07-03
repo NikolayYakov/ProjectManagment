@@ -91,6 +91,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Issue>()
        .HasMany(e => e.Assignees)
        .WithMany(e => e.IssuesAssigned);
+       
 
         builder.ApplyConfiguration(new ApplicationUserEntityConfiguration());
     }
