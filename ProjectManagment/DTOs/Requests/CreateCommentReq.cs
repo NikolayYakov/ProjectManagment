@@ -7,6 +7,5 @@ namespace ProjectManagment.DTOs.Requests
     public class CreateCommentReq
     {
         public string Content { get; set; }
-        public Guid IssueId { get; set; }
     }
 }

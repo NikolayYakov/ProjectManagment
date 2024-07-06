@@ -19,6 +19,7 @@ namespace ProjectManagment
             builder.Services.AddScoped<ProjectRepository>();
             builder.Services.AddScoped<IssueRepository>();
             builder.Services.AddScoped<IssueElementRepository>();
+            builder.Services.AddScoped<CommentRepositorie>();
 
             //swagger
             builder.Services.AddEndpointsApiExplorer();

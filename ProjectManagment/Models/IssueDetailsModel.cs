@@ -6,10 +6,12 @@ namespace ProjectManagment.Models
     {
         public Guid ProjectId { get; set; }
         public Guid IssueId { get; set; }
+        public int IssueNumber { get; set; }
         public string Title { get; set; }
         public string Body { get; set; }
-        public string Assignee { get; set; }
+        public List<string> Assignees { get; set; }
         public string Area { get; set; }
+        public string Status { get; set; }
         public List<string> Labels { get; set; }
         public string Milestone { get; set; }
         public List<CommentModel> Comments { get; set; }

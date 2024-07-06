@@ -2,6 +2,7 @@
 using Microsoft.Build.Evaluation;
 using Microsoft.CodeAnalysis;
 using ProjectManagment.Data;
+using ProjectManagment.DTOs.Requests;
 using ProjectManagment.Models;
 using ProjectManagment.Repositories;
 using System.Security.Claims;
@@ -13,11 +14,14 @@ namespace ProjectManagment.Controllers
         private IssueRepository issueRepository;
         private IssueElementRepository issueElementRepository;
         private ProjectRepository projectRepository;
-        public IssueController(IssueRepository issuesRepository, IssueElementRepository issueElementRepository, ProjectRepository projectRepository)
+        private CommentRepositorie commentRepository;
+
+        public IssueController(IssueRepository issuesRepository, IssueElementRepository issueElementRepository, ProjectRepository projectRepository, CommentRepositorie commentRepository)
         {
             this.issueRepository = issuesRepository;
             this.issueElementRepository = issueElementRepository;
             this.projectRepository = projectRepository;
+            this.commentRepository = commentRepository;
         }
 
         private List<IssueModel> GetIssues(Guid projectId)
@@ -46,7 +50,7 @@ namespace ProjectManagment.Controllers
 
                 var issueModel = new IssueModel
                 {
-                    IssueNumber = 0,
+                    IssueNumber = issue.Number,
                     IssueId = issue.Id,
                     Title = issue.Title,
                     Assignees = string.Join(", ", issueAssignees.Select(x=>x.Name)),
@@ -90,72 +94,103 @@ namespace ProjectManagment.Controllers
         }
 
         [HttpGet("project/{projectId}/issue/{issueId}/details")]
-        public IActionResult Details(Guid projectId, Guid issueId)
+        public async Task<IActionResult> Details(Guid projectId, Guid issueId)
         {
-            // Example issue data
-            var issue = new IssueDetailsModel
+            var issue = await this.issueRepository.GetIssue(issueId);
+
+            var issueAssignees = await this.issueRepository.GetIssueAssignees(issueId);
+            var issueLabels = await this.issueRepository.GetIssueLabels(issueId);
+            var issueComment = await this.commentRepository.GetIssueComments(issueId);
+            var list = issueLabels.ToList();
+
+            var issueModel = new IssueDetailsModel
             {
-                IssueId = issueId,
-                ProjectId = projectId,
-                Title = "Example Issue",
-                Body = "This is a sample issue description.",
-                Assignee = "John Doe",
-                Area = "Backend",
-                Labels = new List<string> { "bug", "documentation" },
-                Milestone = "Sprint 1",
-                CreatedAt = DateTime.Now,
-                Comments = new List<CommentModel>
-                {
-                    new CommentModel { Author = "Alice", Text = "Initial comment.", PostedAt = DateTime.Now },
-                    new CommentModel { Author = "Bob", Text = "Follow-up comment.", PostedAt = DateTime.Now.AddMinutes(10) }
-                }
+                IssueNumber = 0,
+                IssueId = issue.Id,
+                Title = issue.Title,
+                Body = issue.Body,
+                Assignees = issueAssignees.Select(x => x.Name).ToList(),
+                Labels = issueLabels.Select(x => x.Name).ToList(),
+                Milestone = issue.Milestone.Name,
+                Status = issue.Status.Name,
+                Area = issue.Area.Name,
+                ProjectId = issue.ProjectId,
+                CreatedAt = DateTime.UtcNow,
+                Comments = issueComment?.Select(x=>new CommentModel { PostedAt = x.PostedAt, Author = x.Author.Email, Text = x.Content }).ToList() ?? new List<CommentModel>()
             };
 
-            return View(issue);
+            return View(issueModel);
         }
 
         [HttpGet("project/{projectId}/issue/{issueId}/edit")]
-        public IActionResult Edit(int projectId)
+        public  async Task<IActionResult> Edit(Guid projectId, Guid issueId)
         {
-            //var issue = Issues.FirstOrDefault(i => i.Id == id);
-            //if (issue == null)
-            //{
-            //    return NotFound();
-            //}
+            var availalbeAreas = await this.issueElementRepository.GetAllProjectAreas(projectId);
+            var availableMilestone = await this.issueElementRepository.GetAllProjectMilestones(projectId);
+            var availalbeStatuses = await this.issueElementRepository.GetAllProjectStatuses(projectId);
+            var availalbeLabels = await this.issueElementRepository.GetAllProjectLabels(projectId);
+            var availableAssignees = await this.projectRepository.GetAllProjectMembers(projectId);
+
+            var issue = await this.issueRepository.GetIssue(issueId);
+
+            var issueAssignees = await this.issueRepository.GetIssueAssignees(issue.Id);
+            var issueLabels = await this.issueRepository.GetIssueLabels(issue.Id);
 
             var model = new IssueEditModel
             {
-                Id = 1,
-                Title = "Test Title",
-                Body = "Test Body",
-                Assignees = new List<string> { "Boris", "NikoalyY" },
-                Area = "Constant Area",
-                Labels = new List<string> { "constant-bug", "constant-documentation" },
-                Milestone = "Constant Sprint",
-                AvailableAssignees = new List<string> { "Constant Assignee", "John Doe", "Jane Smith" },
-                AvailableAreas = new List<string> { "Backend", "Frontend", "UI/UX" },
-                AvailableLabels = new List<string> { "bug", "documentation", "enhancement" },
-                AvailableMilestones = new List<string> { "Sprint 1", "Sprint 2", "Release 1.0" },
-                AvailableStatuses = new List<string> { "Sprint 1", "Sprint 2", "Release 1.0" }
+                Id = issue.Id,
+                ProjectId = projectId,
+                Title = issue.Title,
+                Body = issue.Body,
+                Assignees = issueAssignees.Select(x=> x.Id).ToList(),
+                Area = issue.Area.Id.ToString(),
+                Labels = issueLabels.Select(x => x.Id.ToString()).ToList(),
+                Milestone = issue.Milestone.Id.ToString(),
+                AvailableAssignees = availableAssignees.ToList(),
+                AvailableAreas = availalbeAreas.ToList(),
+                AvailableLabels = availalbeLabels.ToList(),
+                AvailableMilestones = availableMilestone.ToList(),
+                AvailableStatuses = availalbeStatuses.ToList(),
             };
 
             return View(model);
         }
 
+        [HttpPost("project/{projectId}/issue/{issueId}/edit")]
+        public async Task<IActionResult> Edit(Guid projectId, Guid issueId,IssueEditModel issueEditModel)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            await this.issueRepository.AddLabels(issueId, issueEditModel.Labels);
+            await this.issueRepository.AssignUser(issueId, issueEditModel.Assignees);
+            var issue = await this.issueRepository.GetIssue(issueId);
+
+            issue.Title = issueEditModel.Title;
+            issue.Body = issueEditModel.Body;
+
+            issue.AreaId = Guid.Parse(issueEditModel.Area);
+            issue.MilestoneId = Guid.Parse(issueEditModel.Milestone);
+            issue.StatusId = Guid.Parse(issueEditModel.Status);
+
+            await this.issueRepository.UpdateIssue(issue);
+
+            string url = Url.Content($"~/project/{projectId}/issue/{issueId}/details");
+            return Redirect(url);
+        }
+
         [HttpGet("project/{projectId}/issue/create")]
         public async Task<IActionResult> Create(Guid projectId)
         {
-            var availableAssignees = await this.issueElementRepository.GetAllProjectAreas(projectId);
+            var availalbeAreas = await this.issueElementRepository.GetAllProjectAreas(projectId);
             var availableMilestone = await this.issueElementRepository.GetAllProjectMilestones(projectId);
             var availalbeStatuses = await this.issueElementRepository.GetAllProjectStatuses(projectId);
             var availalbeLabels = await this.issueElementRepository.GetAllProjectLabels(projectId);
-            var availalbeAssignees = await this.projectRepository.GetAllProjectMembers(projectId);
+            var availableAssignees = await this.projectRepository.GetAllProjectMembers(projectId);
 
             var model = new IssueCreateModel
             {
                 ProjectId = projectId,
-                AvailableAssignees = availalbeAssignees.ToList(),
-                AvailableAreas = availableAssignees.ToList(),
+                AvailableAssignees = availableAssignees.ToList(),
+                AvailableAreas = availalbeAreas.ToList(),
                 AvailableLabels = availalbeLabels.ToList(),
                 AvailableStatuses = availalbeStatuses.ToList(),
                 AvailableMilestones = availableMilestone.ToList(),
@@ -166,39 +201,52 @@ namespace ProjectManagment.Controllers
 
         // POST: /Issue/Create
         [HttpPost("project/{projectId}/issue/create")]
-        public async Task<IActionResult> Create(IssueCreateModel model)
+        public async Task<IActionResult> Create(Guid projectId, IssueCreateModel model)
         {
             //if (ModelState.IsValid)
             //{
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var issueId = await this.issueRepository.CreateIssue(model, userId);
-                await this.issueRepository.AddLabels(issueId, model.Labels);
-                await this.issueRepository.AssignUser(issueId, model.Assignees);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var lastNumber = await this.issueRepository.GetLastIssueNumber(projectId);
+            var issueId = await this.issueRepository.CreateIssue(model, userId, lastNumber);
+            await this.issueRepository.AddLabels(issueId, model.Labels);
+            await this.issueRepository.AssignUser(issueId, model.Assignees);
 
-                string url = Url.Content($"~/project/{model.ProjectId}/issue/all");
-                return Redirect(url);
+            string url = Url.Content($"~/project/{projectId}/issue/all");
+            return Redirect(url);
             //}
             // If ModelState is not valid, return back to the create page with the model
             return View(model);
         }
 
-        //[HttpPost]
-        //public IActionResult EditIssue(IssueEditModel model)
-        //{
-        //    var issue = Issues.FirstOrDefault(i => i.Id == model.Id);
-        //    if (issue == null)
-        //    {
-        //        return NotFound();
-        //    }
+        [HttpPost("project/{projectId}/issue/{issueId}/comment")]
+        public async Task<IActionResult> Comment(Guid projectId, Guid issueId, CreateCommentReq model)
+        {
+            //if (ModelState.IsValid)
+            //{
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-        //    issue.Title = model.Title;
-        //    issue.Body = model.Body;
-        //    issue.Assignee = model.Assignee;
-        //    issue.Area = model.Area;
-        //    issue.Labels = model.Labels;
-        //    issue.Milestone = model.Milestone;
+            var commnet = new Comment()
+            {
+                Id = Guid.NewGuid(),
+                AuthorId = userId,
+                IssueId = issueId,
+                PostedAt = DateTime.UtcNow,
+                Content = model.Content,
+            };
 
-        //    return RedirectToAction("Details", new { id = model.Id });
-        //}
+            this.commentRepository.CreateComment(commnet);
+            string url = Url.Content($"~/project/{projectId}/issue/{issueId}/details");
+            return Redirect(url);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(Guid issueId, Guid projectId)
+        {
+            var issue = await this.issueRepository.GetIssue(issueId);
+            await this.issueRepository.DeleteIssue(issue);
+
+            string url = Url.Content($"~/project/{projectId}/issue/all");
+            return Redirect(url);
+        }
     }
 }

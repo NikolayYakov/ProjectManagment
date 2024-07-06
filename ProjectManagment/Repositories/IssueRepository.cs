@@ -19,16 +19,26 @@ namespace ProjectManagment.Repositories
             return dbContext.Issues.FirstOrDefault(x => x.Title == issueTitle && !x.IsDeleted);
         }
 
-        public Issue GetIssued(Guid issueId)
+        public async Task<Issue> GetIssue(Guid issueId)
         {
-            return dbContext.Issues.FirstOrDefault(x => x.Id == issueId && !x.IsDeleted);
+             return await dbContext.Issues.Where(x => x.Id == issueId && !x.IsDeleted)
+                 .Include(x => x.Labels).Include(x => x.Milestone).Include(x => x.Assignees).Include(x => x.Area).Include(x => x.Status).FirstOrDefaultAsync();
         }
 
-        public async Task<Guid> CreateIssue(IssueCreateModel issueReq, string userId)
+        public async Task<int> GetLastIssueNumber(Guid projectId)
+        {
+            var issue = dbContext.Issues.OrderBy(x => x.CreatedAt).FirstOrDefault(x => x.ProjectId == projectId);
+
+            return issue == null ? issue.Number : 0;
+        }
+
+
+        public async Task<Guid> CreateIssue(IssueCreateModel issueReq, string userId, int lastNumber)
         {
             Issue issue = new Issue()
             {
                 Id = new Guid(),
+                Number = lastNumber+1,
                 Title = issueReq.Title,
                 Body = issueReq.Body,
                 OwnerId = userId,
@@ -58,7 +68,7 @@ namespace ProjectManagment.Repositories
         public async Task<IQueryable<Issue>> GetIssuesInProject(Guid projectId)
         {
             return dbContext.Issues
-                .Where(x => x.ProjectId == projectId)
+                .Where(x => x.ProjectId == projectId && !x.IsDeleted)
                 .Include(x => x.Labels).Include(x => x.Milestone).Include(x=>x.Assignees).Include(x=>x.Area).Include(x=>x.Status);
         }
 

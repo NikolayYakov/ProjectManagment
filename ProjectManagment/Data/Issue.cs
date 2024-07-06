@@ -8,6 +8,7 @@ namespace ProjectManagment.Data
         public Guid Id { get; set; }
         public string Title { get; set; }
         public string Body { get; set; }
+        public int Number { get; set; }
 
         [ForeignKey("ProjectId")]
         public Project Project { get; set; }
@@ -28,6 +29,7 @@ namespace ProjectManagment.Data
         public List<Label> Labels { get; set; }
         public bool IsEpic { get; set; } = false;
         public bool IsDeleted { get; set; } = false;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public ICollection<ApplicationUser> Assignees { get; set; }
     }
 }

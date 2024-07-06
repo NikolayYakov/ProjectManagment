@@ -17,16 +17,8 @@ namespace ProjectManagment.Repositories
             return await dbContext.Comments.FirstOrDefaultAsync(x => x.Id == commentId && !x.isDeleted);
         }
 
-        public async Task CreateComment(CreateCommentReq commentReq, string userId)
+        public async Task CreateComment(Comment comment)
         {
-            Comment comment = new Comment()
-            {
-                Id = new Guid(),
-                Content = commentReq.Content,
-                AuthorId = userId,
-                IssueId = commentReq.IssueId,
-            };
-
             dbContext.Comments.Add(comment);
             await dbContext.SaveChangesAsync();
         }
@@ -45,7 +37,7 @@ namespace ProjectManagment.Repositories
 
         public async Task<IQueryable<Comment>> GetIssueComments(Guid issueId)
         {
-            return dbContext.Comments.Where(x => x.IssueId == issueId && !x.isDeleted);
+            return dbContext.Comments.Where(x => x.IssueId == issueId && !x.isDeleted).Include(x=>x.Author);
         }
     }
 }
