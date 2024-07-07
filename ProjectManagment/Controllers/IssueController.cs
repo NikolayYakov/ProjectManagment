@@ -24,16 +24,6 @@ namespace ProjectManagment.Controllers
             this.commentRepository = commentRepository;
         }
 
-        private List<IssueModel> GetIssues(Guid projectId)
-        {
-            //issueRepository.GetIssuesInProject();
-            return new List<IssueModel>
-            {
-                new IssueModel { IssueNumber = 1, Title = "Issue A", Labels = "Bug", Assignees = "John Doe", Milestone = "Milestone 1", Area = "Backend", Status = "Open", ProjectId = projectId, IssueId = projectId },
-                new IssueModel { IssueNumber = 2, Title = "Issue B", Labels = "Feature", Assignees = "Jane Smith", Milestone = "Milestone 2", Area = "Frontend", Status = "Closed", ProjectId = projectId, IssueId = projectId  },
-                // Add more issues here
-            };
-        }
 
         [HttpGet("project/{projectId}/issue/all")]
         public async Task<ActionResult> All(Guid projectId, string searchTerm, int page = 1, int pageSize = 10)
@@ -59,6 +49,7 @@ namespace ProjectManagment.Controllers
                     Status = issue.Status.Name,
                     Area = issue.Area.Name,
                     ProjectId = issue.ProjectId,
+                    Sprint = issue.Sprint.Name
                 };
 
                 issueModels.Add(issueModel);
@@ -113,6 +104,7 @@ namespace ProjectManagment.Controllers
                 Labels = issueLabels.Select(x => x.Name).ToList(),
                 Milestone = issue.Milestone.Name,
                 Status = issue.Status.Name,
+                Sprint = issue.Sprint.Name,
                 Area = issue.Area.Name,
                 ProjectId = issue.ProjectId,
                 CreatedAt = DateTime.UtcNow,
@@ -130,6 +122,7 @@ namespace ProjectManagment.Controllers
             var availalbeStatuses = await this.issueElementRepository.GetAllProjectStatuses(projectId);
             var availalbeLabels = await this.issueElementRepository.GetAllProjectLabels(projectId);
             var availableAssignees = await this.projectRepository.GetAllProjectMembers(projectId);
+            var availalbeSprints = await this.issueElementRepository.GetAllProjectSprints(projectId);
 
             var issue = await this.issueRepository.GetIssue(issueId);
 
@@ -146,11 +139,15 @@ namespace ProjectManagment.Controllers
                 Area = issue.Area.Id.ToString(),
                 Labels = issueLabels.Select(x => x.Id.ToString()).ToList(),
                 Milestone = issue.Milestone.Id.ToString(),
+                Sprint = issue.Sprint.Id.ToString(),
+                Status = issue.Status.Id.ToString(),
+
                 AvailableAssignees = availableAssignees.ToList(),
                 AvailableAreas = availalbeAreas.ToList(),
                 AvailableLabels = availalbeLabels.ToList(),
                 AvailableMilestones = availableMilestone.ToList(),
                 AvailableStatuses = availalbeStatuses.ToList(),
+                AvailableSprints = availalbeSprints.ToList(),
             };
 
             return View(model);
@@ -170,6 +167,7 @@ namespace ProjectManagment.Controllers
             issue.AreaId = Guid.Parse(issueEditModel.Area);
             issue.MilestoneId = Guid.Parse(issueEditModel.Milestone);
             issue.StatusId = Guid.Parse(issueEditModel.Status);
+            issue.SprintId = Guid.Parse(issueEditModel.Sprint);
 
             await this.issueRepository.UpdateIssue(issue);
 
@@ -185,6 +183,8 @@ namespace ProjectManagment.Controllers
             var availalbeStatuses = await this.issueElementRepository.GetAllProjectStatuses(projectId);
             var availalbeLabels = await this.issueElementRepository.GetAllProjectLabels(projectId);
             var availableAssignees = await this.projectRepository.GetAllProjectMembers(projectId);
+            var availalbeSprints = await this.issueElementRepository.GetAllProjectSprints(projectId);
+
 
             var model = new IssueCreateModel
             {
@@ -194,6 +194,7 @@ namespace ProjectManagment.Controllers
                 AvailableLabels = availalbeLabels.ToList(),
                 AvailableStatuses = availalbeStatuses.ToList(),
                 AvailableMilestones = availableMilestone.ToList(),
+                AvailableSprints = availalbeSprints.ToList(),
             };
 
             return View(model);

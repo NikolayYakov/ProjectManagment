@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProjectManagment.Data;
 
@@ -11,9 +12,11 @@ using ProjectManagment.Data;
 namespace ProjectManagment.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240707142916_statusAdded")]
+    partial class statusAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -366,9 +369,6 @@ namespace ProjectManagment.Migrations
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("SprintId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<Guid>("StatusId")
                         .HasColumnType("uniqueidentifier");
 
@@ -385,8 +385,6 @@ namespace ProjectManagment.Migrations
                     b.HasIndex("OwnerId");
 
                     b.HasIndex("ProjectId");
-
-                    b.HasIndex("SprintId");
 
                     b.HasIndex("StatusId");
 
@@ -773,12 +771,6 @@ namespace ProjectManagment.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("ProjectManagment.Data.Sprint", "Sprint")
-                        .WithMany()
-                        .HasForeignKey("SprintId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("ProjectManagment.Data.Status", "Status")
                         .WithMany()
                         .HasForeignKey("StatusId")
@@ -792,8 +784,6 @@ namespace ProjectManagment.Migrations
                     b.Navigation("Owner");
 
                     b.Navigation("Project");
-
-                    b.Navigation("Sprint");
 
                     b.Navigation("Status");
                 });

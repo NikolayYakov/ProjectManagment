@@ -1,0 +1,103 @@
+﻿@model ProjectManagment.Models.ProjectSprintViewModel
+
+@{
+    ViewBag.Title = "Project Sprints";
+    Layout = "_ProjectLayout";
+}
+
+<h2>Project Sprints</h2>
+
+<form method="get" action="@Url.Action("all")">
+    <input type="text" name="searchTerm" value="@Model.SearchTerm" placeholder="Search statuses..." />
+    <button type="submit">Search</button>
+</form>
+
+<a href="~/project/@Model.ProjectId/sprint/create" class="btn btn-success">Create New Sprint</a>
+
+<table class="statuses-table">
+    <thead>
+        <tr>
+            <th>Number</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var status in Model.Sprints)
+        {
+            <tr>
+                <td>@status.Number</td>
+                <td>@status.Name</td>
+                <td>@status.Description</td>
+                <td>@status.StartDate.ToString("yyyy-MM-dd")</td>
+                <td>@status.EndDate.ToString("yyyy-MM-dd")</td>
+                <td>
+                    <a href="~/project/@Model.ProjectId/sprint/@status.SprintId/edit" class="btn btn-info">Edit</a>
+                    <form method="post" asp-action="Delete" asp-controller="Sprint" onsubmit="return confirm('Are you sure you want to delete this milestone?');" style="display:inline;">
+                        <input type="hidden" name="statusId" value="@status.SprintId" />
+                        <input type="hidden" name="projectId" value="@status.ProjectId" />
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="pagination-container">
+    @if (Model.PageNumber > 1)
+    {
+        <a href="@Url.Action("all", new { page = Model.PageNumber - 1, searchTerm = Model.SearchTerm })">Previous</a>
+    }
+    Page @Model.PageNumber of @Model.TotalPages
+    @if (Model.PageNumber < Model.TotalPages)
+    {
+        <a href="@Url.Action("all", new { page = Model.PageNumber + 1, searchTerm = Model.SearchTerm })">Next</a>
+    }
+</div>
+
+<style>
+    .container-fluid {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .statuses-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    th, td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f4f4f4;
+    }
+
+    tr {
+        cursor: pointer;
+    }
+
+        tr:hover {
+            background-color: #f0f0f0;
+        }
+
+    .pagination-container {
+        margin-top: 20px;
+    }
+
+    form {
+        margin-bottom: 20px;
+    }
+
+    .btn {
+        margin-right: 5px;
+    }
+</style>

@@ -22,14 +22,14 @@ namespace ProjectManagment.Repositories
         public async Task<Issue> GetIssue(Guid issueId)
         {
              return await dbContext.Issues.Where(x => x.Id == issueId && !x.IsDeleted)
-                 .Include(x => x.Labels).Include(x => x.Milestone).Include(x => x.Assignees).Include(x => x.Area).Include(x => x.Status).FirstOrDefaultAsync();
+                 .Include(x => x.Labels).Include(x => x.Milestone).Include(x => x.Assignees).Include(x => x.Area).Include(x => x.Status).Include(x=>x.Sprint).FirstOrDefaultAsync();
         }
 
         public async Task<int> GetLastIssueNumber(Guid projectId)
         {
             var issue = dbContext.Issues.OrderBy(x => x.CreatedAt).FirstOrDefault(x => x.ProjectId == projectId);
 
-            return issue == null ? issue.Number : 0;
+            return issue == null ? 0: issue.Number;
         }
 
 
@@ -38,7 +38,7 @@ namespace ProjectManagment.Repositories
             Issue issue = new Issue()
             {
                 Id = new Guid(),
-                Number = lastNumber+1,
+                Number = lastNumber + 1,
                 Title = issueReq.Title,
                 Body = issueReq.Body,
                 OwnerId = userId,
@@ -46,6 +46,7 @@ namespace ProjectManagment.Repositories
                 StatusId = Guid.Parse(issueReq.Status),
                 AreaId = Guid.Parse(issueReq.Area),
                 MilestoneId = Guid.Parse(issueReq.Milestone),
+                SprintId = Guid.Parse(issueReq.Sprint),
             };
             
             dbContext.Issues.Add(issue);
@@ -69,7 +70,14 @@ namespace ProjectManagment.Repositories
         {
             return dbContext.Issues
                 .Where(x => x.ProjectId == projectId && !x.IsDeleted)
-                .Include(x => x.Labels).Include(x => x.Milestone).Include(x=>x.Assignees).Include(x=>x.Area).Include(x=>x.Status);
+                .Include(x => x.Labels).Include(x => x.Milestone).Include(x=>x.Assignees).Include(x=>x.Area).Include(x=>x.Status).Include(x=>x.Sprint);
+        }
+
+        public async Task<IQueryable<Issue>> GetIssuesInProjectForSprint(Guid projectId, Guid sprintId)
+        {
+            return dbContext.Issues
+                .Where(x => x.ProjectId == projectId && !x.IsDeleted && x.SprintId == sprintId);
+                
         }
 
         public async Task<IQueryable<IssueLabelDTO>> GetIssueLabels(Guid issueId)

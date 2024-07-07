@@ -1,83 +1,129 @@
-﻿
+﻿@model Board // Replace Board with your actual Model type
 
-@model Board
 @{
-    ViewBag.Title = "Board";
+    ViewData["Title"] = "Board";
     Layout = "_ProjectLayout";
 }
 
-<div class="board">
-    <div class="column">
-        <h3 class="column-title">To Do</h3>
-        <div class="cards">
-            <div class="card">Task 1</div>
-            <div class="card">Task 2</div>
-        </div>
-    </div>
-    <div class="column">
-        <h3 class="column-title">DONE</h3>
-        <div class="cards">
-            <div class="card">Task 3</div>
-            <div class="card">Task 4</div>
-        </div>
-    </div>
-    <!-- Other columns -->
-</div>
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+<style>
+    /* General styles */
+    .form-control-sm {
+        height: auto;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        max-width: 200px; /* Adjust width as per your design */
+    }
 
+    .board {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-top: 20px; /* Add margin between dropdown and board */
+    }
+
+    .column {
+        flex: 1;
+        background-color: #f0f0f0;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px; /* Adjust margin between columns */
+    }
+
+    .column-title {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 5px;
+    }
+
+    .cards {
+        margin-top: 10px;
+    }
+
+    .card {
+        padding: 10px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: box-shadow 0.3s ease; /* Smooth transition for box-shadow */
+        width: calc(100% - 20px); /* Make card fill the column width minus padding */
+        margin-bottom: 10px; /* Adjust margin between cards */
+    }
+
+        .card:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Box-shadow effect on hover */
+            cursor: pointer;
+        }
+
+    .card-title {
+        font-size: 1rem;
+        margin-top: 0;
+    }
+
+        .card-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+            .card-title a:hover {
+                text-decoration: underline; /* Underline on hover */
+            }
+</style>
+
+<h2>Project Board</h2>
+
+<form id="sprintForm">
+    <div class="meta-section">
+        <label asp-for="SelectedSprintId"></label>
+        <select asp-for="SelectedSprintId"
+                asp-items="@(new SelectList(Model.Sprints, "SprintId", "Name"))"
+                class="form-control form-control-sm" id="sprintSelect">
+            <option value="" disabled>Select a sprint</option>
+        </select>
+        <span asp-validation-for="SelectedSprintId" class="text-danger"></span>
+    </div>
+</form>
+
+<div class="board">
+    @foreach (var column in Model.Columns)
+    {
+        <div class="column">
+            <h3 class="column-title">@column.Name</h3>
+            <div class="cards">
+                @foreach (var card in column.Cards)
+                {
+                    <a href="~/project/@Model.ProjectId/issue/@card.id/details" class="card-link">
+                        <div class="card">
+                           <h4 class="card-title">@card.Number. @card.Title</h4>
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+    }
+</div>
 
 <script>
-    <script>
-        $(document).ready(function () {
-            $(".cards").sortable({
-                connectWith: ".cards",
-                placeholder: "card-placeholder",
-                start: function (event, ui) {
-                    ui.placeholder.height(ui.item.height());
-                },
-                receive: function (event, ui) {
-                    var sourceColumn = ui.sender || ui.item.parent();
-                    var targetColumn = $(this);
-                    var cardId = ui.item.data("card-id");
-                    var newColumnId = targetColumn.closest(".column").data("column-id");
+    $(document).ready(function () {
+        var selectedSprintId = '@Model.SelectedSprintId';
 
-                    // Send AJAX request to update card position and column in backend
-                    $.ajax({
-                        type: "POST",
-                        url: "/Home/MoveCard",
-                        data: { cardId: cardId, newColumnId: newColumnId },
-                        success: function (data) {
-                            // Handle success
-                            if (data.success) {
-                                ui.item.remove(); // Remove the original item after dropping
-                            } else {
-                                // Handle failure
-                            }
-                        },
-                        error: function () {
-                            // Handle error
-                        }
-                    });
-                }
-            });
+        // Set the default selected option based on Model.SelectedSprintId
+        if (selectedSprintId) {
+            $("#sprintSelect").val(selectedSprintId);
+        }
 
-            $(".card").draggable({
-                connectToSortable: ".cards",
-                revert: "invalid",
-                helper: "original",
-                zIndex: 100,
-                start: function (event, ui) {
-                    ui.helper.css("visibility", "hidden"); // Hide helper during dragging
-                    ui.helper.siblings(".column-title").hide(); // Hide column titles during dragging
-                    ui.helper.siblings(".cards").hide(); // Hide other cards during dragging
-                },
-                stop: function (event, ui) {
-                    ui.helper.css("visibility", "visible"); // Restore visibility of helper
-                    ui.helper.siblings(".column-title").show(); // Show column titles after dragging
-                    ui.helper.siblings(".cards").show(); // Show other cards after dragging
-                }
-            }).disableSelection();
+        // Event handler for dropdown change
+        $("#sprintSelect").on("change", function () {
+            var selectedSprintId = $(this).val();
+
+            // Construct the URL dynamically with selected sprintId
+            var url = `/project/@Model.ProjectId/board/${selectedSprintId}`;
+
+            // Navigate to the constructed URL
+            window.location.href = url;
         });
-    </script>
+    });
 </script>

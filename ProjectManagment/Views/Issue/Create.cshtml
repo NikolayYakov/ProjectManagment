@@ -65,6 +65,13 @@
                     </select>
                     <span asp-validation-for="Status" class="text-danger"></span>
                 </div>
+                <div class="meta-section">
+                    <label asp-for="Sprint"></label>
+                    <select asp-for="Sprint" asp-items="@(new SelectList(Model.AvailableSprints, "SprintId", "Name"))" class="form-control form-control-sm">
+                        <option value="" disabled selected>Select a sprint</option>
+                    </select>
+                    <span asp-validation-for="Sprint" class="text-danger"></span>
+                </div>
             </div>
         </div>
     </form>

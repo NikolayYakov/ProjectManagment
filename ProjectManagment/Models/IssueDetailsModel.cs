@@ -12,6 +12,7 @@ namespace ProjectManagment.Models
         public List<string> Assignees { get; set; }
         public string Area { get; set; }
         public string Status { get; set; }
+        public string Sprint { get; set; }
         public List<string> Labels { get; set; }
         public string Milestone { get; set; }
         public List<CommentModel> Comments { get; set; }

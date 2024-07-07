@@ -23,6 +23,9 @@ namespace ProjectManagment.Data
         public Status Status { get; set; }
         [ForeignKey("StatusId")]
         public Guid StatusId{ get; set; }
+        public Sprint Sprint { get; set; }
+        [ForeignKey("SprintId")]
+        public Guid SprintId { get; set; }
         public Area Area { get; set; }
         [ForeignKey("AreaId")]
         public Guid AreaId { get; set; }

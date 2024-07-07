@@ -23,6 +23,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Label> Labels { get; set; }
     public DbSet<Area> Areas { get; set; }
     public DbSet<Status> Status { get; set; }
+    public DbSet<Sprint> Sprints { get; set; }
     public DbSet<LabelsToIssues> LabelsToIssues { get; set; }
     public DbSet<UsersToIssues> UsersToIssues { get; set; }
     public DbSet<ProjectsToMembers> ProjectsToMembers { get; set; }
@@ -58,6 +59,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
       .HasForeignKey(e => e.ProjectId)
       .OnDelete(DeleteBehavior.NoAction)
       .HasPrincipalKey(e => e.Id);
+
+        builder.Entity<Project>()
+   .HasMany(e => e.Sprint)
+   .WithOne(e => e.Project)
+   .HasForeignKey(e => e.ProjectId)
+   .OnDelete(DeleteBehavior.NoAction)
+   .HasPrincipalKey(e => e.Id);
 
         builder.Entity<ApplicationUser>()
         .HasMany(e => e.ProjectsJoined)

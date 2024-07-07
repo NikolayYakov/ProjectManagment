@@ -43,6 +43,23 @@ namespace ProjectManagment.Repositories
             await dbContext.SaveChangesAsync();
         }
 
+        public async Task AddSprintToProject(CreateSprintReq issueElementReq, Guid projectId, int lastSprintNumber)
+        {
+            Sprint status = new Sprint()
+            {
+                Id = new Guid(),
+                Name = issueElementReq.Name,
+                Description = issueElementReq.Description,
+                Number = lastSprintNumber + 1,
+                ProjectId = projectId,
+                StartDate = issueElementReq.StartDate,
+                EndDate = issueElementReq.EndDate,
+            };
+
+            dbContext.Sprints.Add(status);
+            await dbContext.SaveChangesAsync();
+        }
+
         public async Task AddMilestoneToProject(CreateIssueElementReq issueElementReq, Guid projectId, int lastMilestoneNumber)
         {
             Milestone milestone = new Milestone()
@@ -86,6 +103,12 @@ namespace ProjectManagment.Repositories
             await dbContext.SaveChangesAsync();
         }
 
+        public async Task DeleteSprintFromProject(Sprint sprint)
+        {
+            sprint.isDeleted = true;
+            await dbContext.SaveChangesAsync();
+        }
+
         public async Task DeleteeMilestoneFromProject(Milestone milestone)
         {
             milestone.isDeleted = true;
@@ -108,6 +131,17 @@ namespace ProjectManagment.Repositories
             return await this.dbContext.Status.FirstOrDefaultAsync(x => x.Id == statusId);
         }
 
+        public async Task<Sprint> GetSprintFromProject(Guid sprintId)
+        {
+            return await this.dbContext.Sprints.FirstOrDefaultAsync(x => x.Id == sprintId);
+        }
+
+        public async Task<Guid?> GetLastSprintFromProject(Guid projectId)
+        {
+            var sprint = this.dbContext.Sprints.Where(x => x.ProjectId == projectId && !x.isDeleted).OrderByDescending(x => x.StartDate).FirstOrDefault();
+            return sprint == null ? Guid.Empty : sprint.Id;
+        }
+
         public async Task<Milestone> GetMilestoneFromProject(Guid milestoneId)
         {
             return await this.dbContext.Milestones.FirstOrDefaultAsync(x => x.Id == milestoneId);
@@ -127,6 +161,12 @@ namespace ProjectManagment.Repositories
         public async Task UpdateStatus(Status status)
         {
             dbContext.Status.Update(status);
+            await dbContext.SaveChangesAsync();
+        }
+
+        public async Task UpdateSprint(Sprint sprint)
+        {
+            dbContext.Sprints.Update(sprint);
             await dbContext.SaveChangesAsync();
         }
 
@@ -174,6 +214,13 @@ namespace ProjectManagment.Repositories
                                         .Select(x => new ProjectStatus(projectId, x.Id, x.Name, x.Description, x.Number));
         }
 
+        public async Task<IQueryable<ProjectSprint>> GetAllProjectSprints(Guid projectId)
+        {
+            return this.dbContext.Sprints.Where(x => x.ProjectId == projectId && !x.isDeleted)
+                                        .OrderByDescending(x => x.StartDate)
+                                        .Select(x => new ProjectSprint(projectId, x.Id, x.Name, x.Description, x.Number, x.StartDate, x.EndDate));
+        }
+
         public async Task<IQueryable<ProjectMilestone>> GetAllProjectMilestones(Guid projectId)
         {
             return this.dbContext.Milestones.Where(x => x.ProjectId == projectId && !x.isDeleted)
@@ -212,6 +259,13 @@ namespace ProjectManagment.Repositories
             var lastStatus = await this.dbContext.Status.Where(x => x.ProjectId == projectId).OrderBy(x => x.Number).LastOrDefaultAsync();
 
             return lastStatus == null ? 0 : lastStatus.Number;
+        }
+
+        public async Task<int> GetLastProjectSprintNumber(Guid projectId)
+        {
+            var lastSprint = await this.dbContext.Status.Where(x => x.ProjectId == projectId).OrderBy(x => x.Number).LastOrDefaultAsync();
+
+            return lastSprint == null ? 0 : lastSprint.Number;
         }
     }
 }

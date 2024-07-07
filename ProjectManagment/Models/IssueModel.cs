@@ -11,6 +11,8 @@
         public string Milestone { get; set; }
         public string Area { get; set; }
         public string Status { get; set; }
+        public string Sprint { get; set; }
+
     }
 
     public class IssueViewModel

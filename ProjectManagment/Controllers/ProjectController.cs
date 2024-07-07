@@ -7,6 +7,8 @@ using ProjectManagment.Repositories;
 using System.Security.Claims;
 using ProjectManagment.Models;
 using System.Security;
+using Microsoft.CodeAnalysis;
+using Microsoft.Build.Evaluation;
 
 namespace ProjectManagment.Controllers
 {
@@ -15,39 +17,21 @@ namespace ProjectManagment.Controllers
     public class ProjectController : Controller
     {
         private ProjectRepository projectRepository;
-        public ProjectController(ProjectRepository projectRepository)
+        private IssueElementRepository issueElementRepository;
+        private IssueRepository issueRepository;
+
+
+        public ProjectController(ProjectRepository projectRepository, IssueElementRepository issueElementRepository, IssueRepository issueRepository)
         {
             this.projectRepository = projectRepository;
+            this.issueElementRepository = issueElementRepository;
+            this.issueRepository = issueRepository;
         }
-
-        //[HttpPost]
-        //public async Task<CommanRes> CreateProject(CreateProjectReq projectReq)
-        //{
-        //    var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-        //    if(!await this.projectRepository.DoesUserContainProjectWithName(projectReq.Name, userId))
-        //    {
-        //        await this.projectRepository.CreateProject(projectReq, userId);
-        //    }
-        //    else
-        //    {
-        //        return new CommanRes(Singleton.ErrorCodes.ProjectAlreadyExist);
-        //    }
-
-        //    return new CommanRes();
-        //}
 
         public async Task<IActionResult> All()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             var userProjects = await this.projectRepository.GetAllUserProjects(userId);
-
-            //var projects = new List<ProjectModel>
-            //{
-            //    new ProjectModel { ProjectId = new Guid(), Title = "Project A", Description = "Description for Project A" },
-            //    new ProjectModel { ProjectId = new Guid(), Title = "Project B", Description = "Description for Project B" },
-            //    // Add more projects here
-            //};
 
             return View(userProjects);
         }
@@ -62,43 +46,53 @@ namespace ProjectManagment.Controllers
 
             return View(projectDetailsModel);
         }
-
-        public IActionResult Board()
-		{
-            var model = new Board
+        [HttpGet("Project/{id}/Board/{spritnId}")]
+        public async Task<IActionResult> Board(Guid id, Guid spritnId)
+        {
+            var model = new Board()
             {
-                Columns = new List<Column>
-                {
-                    new Column
-                    {
-                        Name = "To Do",
-                        Cards = new List<Card>
-                        {
-                            new Card { Id = 1, Title = "Task 1", Description = "Description of Task 1" },
-                            new Card { Id = 2, Title = "Task 2", Description = "Description of Task 2" }
-                        }
-                    },
-                    new Column
-                    {
-                        Name = "In Progress",
-                        Cards = new List<Card>
-                        {
-                            new Card { Id = 3, Title = "Task 3", Description = "Description of Task 3" }
-                        }
-                    },
-                    new Column
-                    {
-                        Name = "Done",
-                        Cards = new List<Card>
-                        {
-                            new Card { Id = 4, Title = "Task 4", Description = "Description of Task 4" },
-                            new Card { Id = 5, Title = "Task 5", Description = "Description of Task 5" }
-                        }
-                    }
-                }
+                ProjectId = id,
+                SelectedSprintId = spritnId
             };
+            var sprints = await this.issueElementRepository.GetAllProjectSprints(id);
+
+            model.Sprints = sprints.ToList();
+
+            var columns = new List<Column>();
+            
+            var projectStatuses = await this.issueElementRepository.GetAllProjectStatuses(id);
+
+            var issueForSprint = await this.issueRepository.GetIssuesInProjectForSprint(id, spritnId);
+
+            foreach (var status in projectStatuses)
+            {
+                var column = new Column()
+                {
+                    Name = status.Name,
+                };
+                var cards = new List<Card>();
+
+                foreach (var item in issueForSprint.Where(x=>x.StatusId == status.StatusId))
+                {
+                    var card = new Card(item.Number, item.Id, item.Title);
+                    cards.Add(card);
+                }
+
+                column.Cards = cards;
+                columns.Add(column);
+            }
+
+            model.Columns = columns;
 
             return View(model);
+        }
+
+        [HttpGet("Project/{id}/Board")]
+        public async Task<IActionResult> Board(Guid id)
+        {
+            var sprintId = await this.issueElementRepository.GetLastSprintFromProject(id);
+            string url = Url.Content($"~/project/{id}/board/{sprintId}/");
+            return Redirect(url);
         }
 
         // GET: Project/Create
