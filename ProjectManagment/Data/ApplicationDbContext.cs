@@ -27,6 +27,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<LabelsToIssues> LabelsToIssues { get; set; }
     public DbSet<UsersToIssues> UsersToIssues { get; set; }
     public DbSet<ProjectsToMembers> ProjectsToMembers { get; set; }
+    public DbSet<Invite> Invites { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

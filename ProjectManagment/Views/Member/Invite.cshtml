@@ -1,0 +1,32 @@
+﻿@model ProjectManagment.Models.CreateProjectElementModel
+
+@{
+    ViewBag.Title = "Invite User";
+    Layout = "_ProjectLayout";
+}
+
+<h2>Invite User</h2>
+
+<form method="post" action="">
+    <div class="form-group">
+        <label for="Email">Email</label>
+        <input type="email" class="form-control" id="Email" name="Email" placeholder="Enter user's email" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Invite</button>
+    <a href="~/project/@Model.ProjectId/member/all" class="btn btn-secondary">Cancel</a>
+</form>
+
+<style>
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    label {
+        font-weight: bold;
+    }
+
+    .btn {
+        margin-right: 10px;
+    }
+</style>

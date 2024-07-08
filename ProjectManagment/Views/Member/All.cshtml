@@ -1,0 +1,96 @@
+﻿@model ProjectManagment.Models.ProjectMembersViewModel
+
+@{
+    ViewBag.Title = "Project Members";
+    Layout = "_ProjectLayout";
+}
+
+<h2>Project Members</h2>
+
+<a href="~/project/@Model.ProjectId/member/invite" class="btn btn-success">Invite New Member</a>
+
+<table class="members-table">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var member in Model.Members)
+        {
+            <tr>
+                <td>@member.Email</td>
+                <td>@member.Name</td>
+                <td>@member.Role</td>
+                <td>
+                    @if (!member.IsOwner)
+                    {
+                        <form method="post" asp-action="Kick" asp-controller="Member" onsubmit="return confirm('Are you sure you want to kick this member?');" style="display:inline;">
+                            <input type="hidden" name="userId" value="@member.UserId" />
+                            <input type="hidden" name="projectId" value="@Model.ProjectId" />
+                            <button type="submit" class="btn btn-danger">Kick</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="pagination-container">
+    @if (Model.PageNumber > 1)
+    {
+        <a href="@Url.Action("all", new { page = Model.PageNumber - 1, searchTerm = Model.SearchTerm })">Previous</a>
+    }
+    Page @Model.PageNumber of @Model.TotalPages
+    @if (Model.PageNumber < Model.TotalPages)
+    {
+        <a href="@Url.Action("all", new { page = Model.PageNumber + 1, searchTerm = Model.SearchTerm })">Next</a>
+    }
+</div>
+
+<style>
+    .container-fluid {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .members-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    th, td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f4f4f4;
+    }
+
+    tr {
+        cursor: pointer;
+    }
+
+        tr:hover {
+            background-color: #f0f0f0;
+        }
+
+    .pagination-container {
+        margin-top: 20px;
+    }
+
+    form {
+        margin-bottom: 20px;
+    }
+
+    .btn {
+        margin-right: 5px;
+    }
+</style>

@@ -72,9 +72,9 @@ namespace ProjectManagment.Repositories
         public async Task<List<UserModel>> GetAllProjectMembers(Guid projectId)
         {
             var allMembers = new List<UserModel>();
-            var owner = await dbContext.Projects.Where(x => x.Id == projectId).Select(x=>x.Owner).Select(x=> new UserModel(x.Id, x.Email)).FirstOrDefaultAsync();
+            var owner = await dbContext.Projects.Where(x => x.Id == projectId).Select(x=>x.Owner).Select(x=> new UserModel(x.Id, x.Email, true)).FirstOrDefaultAsync();
             allMembers.Add(owner);
-            allMembers.AddRange(dbContext.ProjectsToMembers.Where(x => x.ProjectId == projectId && !x.Project.isDeleted).Select(x => x.User).Select(x => new UserModel(x.Id, x.Email)));
+            allMembers.AddRange(dbContext.ProjectsToMembers.Where(x => x.ProjectId == projectId && !x.Project.isDeleted).Select(x => x.User).Select(x => new UserModel(x.Id, x.Email, false)));
             return allMembers;
         }
 
