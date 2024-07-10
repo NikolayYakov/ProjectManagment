@@ -98,6 +98,27 @@ namespace ProjectManagment.Repositories
             dbContext.SaveChanges();
         }
 
+        public async Task<Guid> InviteUser(InviteDTO invireDto, Guid projectId)
+        {
+            var userId = this.dbContext.Users.FirstOrDefault(X => X.Email == invireDto.Email)?.Id;
+            if (userId == null)
+            {
+                return Guid.Empty;
+            }
+
+            Invite invite = new Invite()
+            {
+                InviteId = Guid.NewGuid(),
+                ProjectId = projectId,
+                UserId = userId,
+                CreatedAt = DateTime.UtcNow,
+            };
+
+            dbContext.Invites.Add(invite);
+            dbContext.SaveChanges();
+
+            return invite.InviteId;
+        }
 
     }
 }

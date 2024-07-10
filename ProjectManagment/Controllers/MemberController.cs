@@ -35,14 +35,22 @@ namespace ProjectManagment.Controllers
         [HttpGet("Project/{projectId}/member/invite")]
         public async Task<IActionResult> Invite(Guid projectId)
         {
-            return View(new CreateProjectElementModel { ProjectId = projectId });
+            return View(new InviteUserModel { ProjectId = projectId });
         }
 
         [HttpPost("Project/{projectId}/member/invite")]
         public async Task<IActionResult> Invite(Guid projectId, InviteDTO inviteReq)
         {
-            string url = Url.Content($"~/project/{projectId}/label/all");
-            return Redirect(url);
+            var inviteId = await this.projectRepository.InviteUser(inviteReq, projectId);
+            string errorMessage = null;
+            if (inviteId == Guid.Empty)
+            {
+                errorMessage = "User does not exist";
+            }
+
+            return View(new InviteUserModel { ProjectId = projectId, InviteId = inviteId, isInvited = true, ErrorMessage = errorMessage });
+            //string url = Url.Content($"~/project/{projectId}/label/all");
+            //return Redirect(url);
         }
 
         [HttpPost]

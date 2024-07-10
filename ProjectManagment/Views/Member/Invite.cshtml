@@ -1,4 +1,4 @@
-﻿@model ProjectManagment.Models.CreateProjectElementModel
+﻿@model ProjectManagment.Models.InviteUserModel
 
 @{
     ViewBag.Title = "Invite User";
@@ -7,7 +7,7 @@
 
 <h2>Invite User</h2>
 
-<form method="post" action="">
+<form method="post">
     <div class="form-group">
         <label for="Email">Email</label>
         <input type="email" class="form-control" id="Email" name="Email" placeholder="Enter user's email" required />
@@ -16,6 +16,50 @@
     <button type="submit" class="btn btn-primary">Invite</button>
     <a href="~/project/@Model.ProjectId/member/all" class="btn btn-secondary">Cancel</a>
 </form>
+
+@if (Model.isInvited)
+{
+    <div class="modal fade show" id="inviteModal" tabindex="-1" role="dialog" aria-labelledby="inviteModalLabel" aria-hidden="true" style="display: block; background-color: rgba(0, 0, 0, 0.5);">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="inviteModalLabel">Invite Link</h5>
+                    <a href="~/project/@Model.ProjectId/member/all" class="close" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </a>
+                </div>
+                <div class="modal-body">
+                    Your invite link: <span id="inviteLink">@Model.InviteId</span>
+                </div>
+                <div class="modal-footer">
+                    <a href="~/project/@Model.ProjectId/member/all" class="btn btn-secondary">Close</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="modal fade show" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true" style="display: block; background-color: rgba(0, 0, 0, 0.5);">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                    <a href="~/project/@Model.ProjectId/member/invite" class="close" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </a>
+                </div>
+                <div class="modal-body">
+                    <span id="errorMessage">@Model.ErrorMessage</span>
+                </div>
+                <div class="modal-footer">
+                    <a href="~/project/@Model.ProjectId/member/invite" class="btn btn-secondary">Close</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 <style>
     .form-group {
