@@ -65,7 +65,7 @@ namespace ProjectManagment.Repositories
         {
             var allProjects = new List<ProjectModel>();
             allProjects.AddRange(dbContext.Projects.Where(x => x.OwnerId == userId && !x.isDeleted).Select(x=> new ProjectModel(x.Id, x.Name, x.Description)));
-            allProjects.AddRange(dbContext.ProjectsToMembers.Where(x => x.UserId == userId && !x.Project.isDeleted).Select(x => x.Project).Select(x => new ProjectModel(x.Id, x.Name, x.Description)));
+            allProjects.AddRange(dbContext.ProjectsToMembers.Where(x => x.UserId == userId && !x.Project.isDeleted && !x.IsRemoved).Select(x => x.Project).Select(x => new ProjectModel(x.Id, x.Name, x.Description)));
             return allProjects;
         }
 
@@ -74,27 +74,26 @@ namespace ProjectManagment.Repositories
             var allMembers = new List<UserModel>();
             var owner = await dbContext.Projects.Where(x => x.Id == projectId).Select(x=>x.Owner).Select(x=> new UserModel(x.Id, x.Email, true)).FirstOrDefaultAsync();
             allMembers.Add(owner);
-            allMembers.AddRange(dbContext.ProjectsToMembers.Where(x => x.ProjectId == projectId && !x.Project.isDeleted).Select(x => x.User).Select(x => new UserModel(x.Id, x.Email, false)));
+            allMembers.AddRange(dbContext.ProjectsToMembers.Where(x => x.ProjectId == projectId && !x.Project.isDeleted && !x.IsRemoved).Select(x => x.User).Select(x => new UserModel(x.Id, x.Email, false)));
             return allMembers;
         }
 
-
-        public async Task AddUser(Guid projectId, string userId)
+        public bool isUserInProject(Guid projectId, string userId)
         {
-            ProjectsToMembers projectToMember = new ProjectsToMembers()
+            var allMembers = new List<UserModel>();
+            var owner = dbContext.Projects.Any(x => x.Id == projectId && x.OwnerId == userId);
+            if (owner)
             {
-                Id = new Guid(),
-                UserId = userId,
-                ProjectId = projectId
-            };
+                return true;
+            }
 
-            dbContext.ProjectsToMembers.Add(projectToMember);
-            await dbContext.SaveChangesAsync();
+            return dbContext.ProjectsToMembers.Any(x => x.ProjectId == projectId && x.UserId == userId && !x.Project.isDeleted && !x.IsRemoved);
         }
 
-        public async Task RemoveUser(ProjectsToMembers projectToMember)
+        public async Task KickUser(string userId, Guid projectId)
         {
-            projectToMember.IsRemoved = true;
+            var member = dbContext.ProjectsToMembers.FirstOrDefault(x => x.UserId == userId && x.ProjectId == projectId);
+            member.IsRemoved = true;
             dbContext.SaveChanges();
         }
 
@@ -120,5 +119,32 @@ namespace ProjectManagment.Repositories
             return invite.InviteId;
         }
 
+        public async Task<Invite> GetInvite(Guid inviteId, string userId)
+        {
+            return await this.dbContext.Invites.FirstOrDefaultAsync(x=>x.InviteId == inviteId && x.UserId == userId && !x.IsExpired);
+        }
+
+        public async Task JoinProject(Invite invite, string userId)
+        {
+         
+            var removedUser = dbContext.ProjectsToMembers.FirstOrDefault(x => x.UserId == userId && x.ProjectId == invite.ProjectId);
+            if (removedUser != null)
+            {
+                removedUser.IsRemoved = false;
+            }
+            else
+            {
+                ProjectsToMembers projectToMember = new ProjectsToMembers()
+                {
+                    Id = Guid.NewGuid(),
+                    ProjectId = invite.ProjectId,
+                    UserId = userId,
+                };
+                dbContext.ProjectsToMembers.Add(projectToMember);
+            }
+            invite.IsExpired = true;
+
+            dbContext.SaveChanges();
+        }
     }
 }

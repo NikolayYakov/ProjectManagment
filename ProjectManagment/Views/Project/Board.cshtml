@@ -77,7 +77,7 @@
 
 <form id="sprintForm">
     <div class="meta-section">
-        <label asp-for="SelectedSprintId"></label>
+        <label asp-for="SelectedSprintId">Sprint</label>
         <select asp-for="SelectedSprintId"
                 asp-items="@(new SelectList(Model.Sprints, "SprintId", "Name"))"
                 class="form-control form-control-sm" id="sprintSelect">

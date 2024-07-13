@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Build.Evaluation;
 using Microsoft.CodeAnalysis;
 using ProjectManagment.Data;
@@ -9,6 +10,7 @@ using System.Security.Claims;
 
 namespace ProjectManagment.Controllers
 {
+    [Authorize]
     public class IssueController : Controller
     {
         private IssueRepository issueRepository;

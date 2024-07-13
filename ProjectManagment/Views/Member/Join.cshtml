@@ -1,0 +1,72 @@
+﻿@model ProjectManagment.Models.JoinProjectModel
+
+@{
+    ViewBag.Title = "Join Project";
+    Layout = "_Layout";
+}
+
+<div class="container mt-5">
+    <h2 class="mb-4">Join Project</h2>
+
+    <form method="post" class="bg-light p-4 rounded shadow-sm">
+        <div class="form-group">
+            <label for="ProjectCode">Project Code</label>
+            <input type="text" class="form-control" id="InviteId" name="InviteId" placeholder="Enter project code" required />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Join</button>
+        <a href="~/project/all" class="btn btn-secondary">Cancel</a>
+    </form>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="modal fade show" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true" style="display: block; background-color: rgba(0, 0, 0, 0.5);">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                        <a href="~/project/join" class="close" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </a>
+                    </div>
+                    <div class="modal-body">
+                        <span id="errorMessage">@Model.ErrorMessage</span>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="~/project/join" class="btn btn-secondary">Close</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    label {
+        font-weight: bold;
+    }
+
+    .btn {
+        margin-right: 10px;
+    }
+
+    .container {
+        max-width: 600px;
+    }
+
+    .modal-content {
+        border-radius: 10px;
+    }
+
+    .modal-header {
+        border-bottom: none;
+    }
+
+    .modal-footer {
+        border-top: none;
+    }
+</style>

@@ -9,11 +9,11 @@ using ProjectManagment.Models;
 using System.Security;
 using Microsoft.CodeAnalysis;
 using Microsoft.Build.Evaluation;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ProjectManagment.Controllers
 {
-    //[ApiController]
-    //[Route("api/[controller]")]
+    [Authorize]
     public class ProjectController : Controller
     {
         private ProjectRepository projectRepository;

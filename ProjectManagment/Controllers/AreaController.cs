@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using ProjectManagment.DTOs.Requests;
 using ProjectManagment.Models;
@@ -6,6 +7,7 @@ using ProjectManagment.Repositories;
 
 namespace ProjectManagment.Controllers
 {
+    [Authorize]
     public class AreaController : Controller
     {
         private IssueElementRepository issueElementRepository;

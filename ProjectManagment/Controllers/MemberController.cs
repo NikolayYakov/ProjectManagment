@@ -1,10 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
+using ProjectManagment.Data;
 using ProjectManagment.DTOs.Requests;
 using ProjectManagment.Models;
 using ProjectManagment.Repositories;
+using ProjectManagment.Singleton;
+using System.Security.Claims;
 
 namespace ProjectManagment.Controllers
 {
+    [Authorize]
     public class MemberController : Controller
     {
         private ProjectRepository projectRepository;
@@ -49,43 +55,47 @@ namespace ProjectManagment.Controllers
             }
 
             return View(new InviteUserModel { ProjectId = projectId, InviteId = inviteId, isInvited = true, ErrorMessage = errorMessage });
-            //string url = Url.Content($"~/project/{projectId}/label/all");
-            //return Redirect(url);
         }
 
-        [HttpPost]
+        [HttpGet("Project/join")]
+        public async Task<IActionResult> Join()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            return View(new JoinProjectModel { UserId = userId });
+        }
+
+        [HttpPost("Project/join")]
+        public async Task<IActionResult> Join(JoinDTO joinDTO)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (!Guid.TryParse(joinDTO.InviteId, out Guid inviteGuid))
+            {
+                return View(new JoinProjectModel { UserId = userId, ErrorMessage = "Invalid invite" });
+            }
+
+            var invite = await this.projectRepository.GetInvite(inviteGuid, userId);
+
+            if (invite == null)
+            {
+                return View(new JoinProjectModel { UserId = userId, ErrorMessage = "Invalid invite" });
+            }
+
+            if(this.projectRepository.isUserInProject(invite.ProjectId, userId))
+            {
+                return View(new JoinProjectModel { UserId = userId, ErrorMessage = "User is already memeber of the project" });
+            }
+
+            await this.projectRepository.JoinProject(invite, userId);
+
+            return View(new JoinProjectModel { UserId = userId, ErrorMessage = "Joined project successfully" });
+        }
+
         public async Task<IActionResult> Kick(string userId, Guid projectId)
         {
-            //var label = await this.issueElementRepository.GetLabelFromProject(labelId);
-            //await this.issueElementRepository.DeleteLabelFromProject(label);
-
-            string url = Url.Content($"~/project/{projectId}/label/all");
+            await this.projectRepository.KickUser(userId, projectId);
+            string url = Url.Content($"~/project/{projectId}/member/all");
             return Redirect(url);
         }
-        //[HttpPost]
-        //public IActionResult Kick(int memberId, int projectId)
-        //{
-        //    var project = _projectService.GetProjectById(projectId);
-        //    if (project == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    var member = _memberService.GetMemberById(memberId);
-        //    if (member == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    if (member.Role == "Owner")
-        //    {
-        //        ModelState.AddModelError("", "Cannot kick the owner.");
-        //        return RedirectToAction("All", new { projectId });
-        //    }
-
-        //    _memberService.RemoveMemberFromProject(memberId, projectId);
-
-        //    return RedirectToAction("All", new { projectId });
-        //}
     }
 }

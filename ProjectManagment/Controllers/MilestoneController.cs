@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Elfie.Serialization;
 using ProjectManagment.Data;
@@ -8,6 +9,7 @@ using ProjectManagment.Repositories;
 
 namespace ProjectManagment.Controllers
 {
+    [Authorize]
     public class MilestoneController : Controller
     {
         private IssueElementRepository issueElementRepository;
