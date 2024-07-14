@@ -6,8 +6,10 @@
 }
 
 <h2>Project Members</h2>
-
-<a href="~/project/@Model.ProjectId/member/invite" class="btn btn-success">Invite New Member</a>
+@if (Model.isOwner)
+{
+    <a href="~/project/@Model.ProjectId/member/invite" class="btn btn-success">Invite New Member</a>
+}
 
 <table class="members-table">
     <thead>
@@ -31,7 +33,10 @@
                         <form method="post" asp-action="Kick" asp-controller="Member" onsubmit="return confirm('Are you sure you want to kick this member?');" style="display:inline;">
                             <input type="hidden" name="userId" value="@member.UserId" />
                             <input type="hidden" name="projectId" value="@Model.ProjectId" />
-                            <button type="submit" class="btn btn-danger">Kick</button>
+                            @if (Model.isOwner)
+                            {
+                                <button type="submit" class="btn btn-danger">Kick</button>
+                            }
                         </form>
                     }
                 </td>

@@ -17,14 +17,26 @@
         @foreach (var project in Model)
         {
             <div class="my-projects-card" data-project-id="@project.ProjectId">
-                <a href="@Url.Action("Details", "Project", new { id = project.ProjectId })" class="my-projects-details-link">
+                <a href="@Url.Action("Details", "Project", new { projectId = project.ProjectId })" class="my-projects-details-link">
                     <h3>@project.Title</h3>
                     <p>@project.Description</p>
                 </a>
+            @if (project.isOwner)
+            {
                 <div class="my-projects-actions">
-                    <a href="@Url.Action("Edit", "Project", new { id = project.ProjectId })" class="my-projects-edit-link">Edit</a>
+                    <a href="@Url.Action("Edit", "Project", new { projectId = project.ProjectId })" class="my-projects-edit-link">Edit</a>
                     <a href="#" class="my-projects-delete-link" onclick="deleteProject('@project.ProjectId');">Delete</a>
                 </div>
+            }
+            else
+            {
+                  <div class="my-projects-actions">
+                    <form method="post" asp-action="Leave" asp-controller="Member" onsubmit="return confirm('Are you sure you want to leave this project?');" style="display:inline;">
+                        <input type="hidden" name="projectId" value="@project.ProjectId" />
+                        <button type="submit" class="btn btn-danger">Leave</button>
+                    </form>
+                  </div>
+            } 
             </div>
         }
     </div>

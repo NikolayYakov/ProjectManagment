@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ProjectManagment.Attributes;
 using ProjectManagment.DTOs.Requests;
 using ProjectManagment.Models;
 using ProjectManagment.Repositories;
+using System.Security.Claims;
 
 namespace ProjectManagment.Controllers
 {
@@ -10,12 +12,15 @@ namespace ProjectManagment.Controllers
     public class SprintController : Controller
     {
         private IssueElementRepository issueElementRepository;
-        public SprintController(IssueElementRepository issueElementRepository)
+        private ProjectRepository projectRepository;
+        public SprintController(IssueElementRepository issueElementRepository, ProjectRepository projectRepository)
         {
             this.issueElementRepository = issueElementRepository;
+            this.projectRepository = projectRepository;
         }
 
         [HttpGet("project/{projectId}/sprint/all")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> All(Guid projectId, int page = 1, string searchTerm = "")
         {
             var sprints = await this.issueElementRepository.GetAllProjectSprints(projectId);
@@ -33,12 +38,14 @@ namespace ProjectManagment.Controllers
         }
 
         [HttpGet("project/{projectId}/sprint/create")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public IActionResult Create(Guid projectId)
         {
             return View(new CreateProjectElementModel { ProjectId = projectId });
         }
 
         [HttpPost("project/{projectId}/sprint/create")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> Create(Guid projectId, CreateSprintReq req)
         {
             var lastSprintNumber = await this.issueElementRepository.GetLastProjectSprintNumber(projectId);
@@ -49,6 +56,7 @@ namespace ProjectManagment.Controllers
         }
 
         [HttpGet("project/{projectId}/sprint/{sprintId}/edit")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> Edit(Guid projectId, Guid sprintId)
         {
             var sprint = await this.issueElementRepository.GetSprintFromProject(sprintId);
@@ -56,6 +64,7 @@ namespace ProjectManagment.Controllers
         }
 
         [HttpPost("project/{projectId}/sprint/{sprintId}/edit")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> Edit(Guid projectId, Guid sprintId, CreateSprintReq req)
         {
             var sprint = await this.issueElementRepository.GetSprintFromProject(sprintId);
@@ -73,6 +82,13 @@ namespace ProjectManagment.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(Guid statusId, Guid projectId)
         {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (!this.projectRepository.isUserInProject(projectId, userId))
+            {
+                return new ForbidResult();
+            }
+
             var sprint = await this.issueElementRepository.GetSprintFromProject(statusId);
             await this.issueElementRepository.DeleteSprintFromProject(sprint);
 

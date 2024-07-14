@@ -2,10 +2,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Elfie.Serialization;
+using ProjectManagment.Attributes;
 using ProjectManagment.Data;
 using ProjectManagment.DTOs.Requests;
 using ProjectManagment.Models;
 using ProjectManagment.Repositories;
+using System.Security.Claims;
 
 namespace ProjectManagment.Controllers
 {
@@ -13,12 +15,15 @@ namespace ProjectManagment.Controllers
     public class MilestoneController : Controller
     {
         private IssueElementRepository issueElementRepository;
-        public MilestoneController(IssueElementRepository issueElementRepository)
+        private ProjectRepository projectRepository;
+        public MilestoneController(IssueElementRepository issueElementRepository, ProjectRepository projectRepository)
         {
             this.issueElementRepository = issueElementRepository;
+            this.projectRepository = projectRepository;
         }
 
         [HttpGet("project/{projectId}/milestone/all")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> All(Guid projectId, int page = 1, string searchTerm = "")
         {
             var milestones = await this.issueElementRepository.GetAllProjectMilestones(projectId);
@@ -35,12 +40,14 @@ namespace ProjectManagment.Controllers
         }
 
         [HttpGet("project/{projectId}/milestone/create")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public IActionResult Create(Guid projectId)
         {
             return View(new CreateProjectElementModel { ProjectId = projectId });
         }
 
         [HttpPost("project/{projectId}/milestone/create")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> Create(Guid projectId, CreateIssueElementReq req)
         {
             var lastMilestoneNumber = await this.issueElementRepository.GetLastProjectMilestoneNumber(projectId);
@@ -51,14 +58,16 @@ namespace ProjectManagment.Controllers
         }
 
         [HttpGet("project/{projectId}/milestone/{milestoneId}/edit")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> Edit(Guid projectId, Guid milestoneId)
         {
             var milestone = await this.issueElementRepository.GetMilestoneFromProject(milestoneId);
             return View(new ProjectMilestone(projectId, milestone.Id, milestone.Name, milestone.Description, milestone.Number));
         }
 
-        [HttpPost("project/{id}/milestone/{milestoneId}/edit")]
-        public async Task<IActionResult> Edit(Guid id, Guid milestoneId, CreateIssueElementReq req)
+        [HttpPost("project/{projectId}/milestone/{milestoneId}/edit")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
+        public async Task<IActionResult> Edit(Guid projectId, Guid milestoneId, CreateIssueElementReq req)
         {
             var milestone = await this.issueElementRepository.GetMilestoneFromProject(milestoneId);
             milestone.Name = req.Name;
@@ -66,13 +75,20 @@ namespace ProjectManagment.Controllers
 
             await this.issueElementRepository.UpdateMilestone(milestone);
 
-            string url = Url.Content($"~/project/{id}/milestone/all");
+            string url = Url.Content($"~/project/{projectId}/milestone/all");
             return Redirect(url);
         }
 
         [HttpPost]
         public async Task<IActionResult> Delete(Guid milestoneId, Guid projectId)
         {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (!this.projectRepository.isUserInProject(projectId, userId))
+            {
+                return new ForbidResult();
+            }
+
             var milestone = await this.issueElementRepository.GetMilestoneFromProject(milestoneId);
             await this.issueElementRepository.DeleteeMilestoneFromProject(milestone);
 

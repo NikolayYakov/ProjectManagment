@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Build.Evaluation;
 using Microsoft.CodeAnalysis;
+using ProjectManagment.Attributes;
 using ProjectManagment.Data;
 using ProjectManagment.DTOs.Requests;
 using ProjectManagment.Models;
@@ -28,6 +29,7 @@ namespace ProjectManagment.Controllers
 
 
         [HttpGet("project/{projectId}/issue/all")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<ActionResult> All(Guid projectId, string searchTerm, int page = 1, int pageSize = 10)
         {
             var allIssues = await this.issueRepository.GetIssuesInProject(projectId);
@@ -87,6 +89,7 @@ namespace ProjectManagment.Controllers
         }
 
         [HttpGet("project/{projectId}/issue/{issueId}/details")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> Details(Guid projectId, Guid issueId)
         {
             var issue = await this.issueRepository.GetIssue(issueId);
@@ -117,6 +120,7 @@ namespace ProjectManagment.Controllers
         }
 
         [HttpGet("project/{projectId}/issue/{issueId}/edit")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public  async Task<IActionResult> Edit(Guid projectId, Guid issueId)
         {
             var availalbeAreas = await this.issueElementRepository.GetAllProjectAreas(projectId);
@@ -156,6 +160,7 @@ namespace ProjectManagment.Controllers
         }
 
         [HttpPost("project/{projectId}/issue/{issueId}/edit")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> Edit(Guid projectId, Guid issueId,IssueEditModel issueEditModel)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
@@ -178,6 +183,7 @@ namespace ProjectManagment.Controllers
         }
 
         [HttpGet("project/{projectId}/issue/create")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> Create(Guid projectId)
         {
             var availalbeAreas = await this.issueElementRepository.GetAllProjectAreas(projectId);
@@ -204,6 +210,7 @@ namespace ProjectManagment.Controllers
 
         // POST: /Issue/Create
         [HttpPost("project/{projectId}/issue/create")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> Create(Guid projectId, IssueCreateModel model)
         {
             //if (ModelState.IsValid)
@@ -222,6 +229,7 @@ namespace ProjectManagment.Controllers
         }
 
         [HttpPost("project/{projectId}/issue/{issueId}/comment")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> Comment(Guid projectId, Guid issueId, CreateCommentReq model)
         {
             //if (ModelState.IsValid)
@@ -245,6 +253,13 @@ namespace ProjectManagment.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(Guid issueId, Guid projectId)
         {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (!this.projectRepository.isUserInProject(projectId, userId))
+            {
+                return new ForbidResult();
+            }
+
             var issue = await this.issueRepository.GetIssue(issueId);
             await this.issueRepository.DeleteIssue(issue);
 

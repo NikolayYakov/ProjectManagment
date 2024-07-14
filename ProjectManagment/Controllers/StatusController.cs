@@ -2,10 +2,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Elfie.Serialization;
+using ProjectManagment.Attributes;
 using ProjectManagment.Data;
 using ProjectManagment.DTOs.Requests;
 using ProjectManagment.Models;
 using ProjectManagment.Repositories;
+using System.Security.Claims;
 
 namespace ProjectManagment.Controllers
 {
@@ -13,14 +15,19 @@ namespace ProjectManagment.Controllers
     public class StatusController : Controller
     {
         private IssueElementRepository issueElementRepository;
-        public StatusController(IssueElementRepository issueElementRepository)
+        private ProjectRepository projectRepository;
+        public StatusController(IssueElementRepository issueElementRepository, ProjectRepository projectRepository)
         {
             this.issueElementRepository = issueElementRepository;
+            this.projectRepository = projectRepository;
+
         }
 
         [HttpGet("project/{projectId}/status/all")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> All(Guid projectId, int page = 1, string searchTerm = "")
         {
+            
             var statuses = await this.issueElementRepository.GetAllProjectStatuses(projectId);
 
             var model = new ProjectStatusViewModel
@@ -36,12 +43,14 @@ namespace ProjectManagment.Controllers
         }
 
         [HttpGet("project/{projectId}/status/create")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public IActionResult Create(Guid projectId)
         {
             return View(new CreateProjectElementModel { ProjectId = projectId });
         }
 
         [HttpPost("project/{projectId}/status/create")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> Create(Guid projectId, CreateIssueElementReq req)
         {
             var lastStatusNumber = await this.issueElementRepository.GetLastProjectStatusNumber(projectId);
@@ -52,6 +61,7 @@ namespace ProjectManagment.Controllers
         }
 
         [HttpGet("project/{projectId}/status/{statusId}/edit")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> Edit(Guid projectId, Guid statusId)
         {
             var status = await this.issueElementRepository.GetStatusFromProject(statusId);
@@ -59,6 +69,7 @@ namespace ProjectManagment.Controllers
         }
 
         [HttpPost("project/{projectId}/status/{statusId}/edit")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> Edit(Guid projectId, Guid statusId, CreateIssueElementReq req)
         {
             var status = await this.issueElementRepository.GetStatusFromProject(statusId);
@@ -74,6 +85,13 @@ namespace ProjectManagment.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(Guid statusId, Guid projectId)
         {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (!this.projectRepository.isUserInProject(projectId, userId))
+            {
+                return new ForbidResult();
+            }
+
             var status = await this.issueElementRepository.GetStatusFromProject(statusId);
             await this.issueElementRepository.DeleteStatusFromProject(status);
 

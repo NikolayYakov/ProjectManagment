@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
+using ProjectManagment.Attributes;
 using ProjectManagment.DTOs.Requests;
 using ProjectManagment.Models;
 using ProjectManagment.Repositories;
+using System.Security.Claims;
 
 namespace ProjectManagment.Controllers
 {
@@ -11,12 +14,16 @@ namespace ProjectManagment.Controllers
     public class AreaController : Controller
     {
         private IssueElementRepository issueElementRepository;
-        public AreaController(IssueElementRepository issueElementRepository)
+        private ProjectRepository projectRepository;
+
+        public AreaController(IssueElementRepository issueElementRepository, ProjectRepository projectRepository)
         {
             this.issueElementRepository = issueElementRepository;
+            this.projectRepository = projectRepository;
         }
 
         [HttpGet("project/{projectId}/area/all")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> All(Guid projectId, int page = 1, string searchTerm = "")
         {
             var areas = await this.issueElementRepository.GetAllProjectAreas(projectId);
@@ -33,12 +40,14 @@ namespace ProjectManagment.Controllers
         }
 
         [HttpGet("project/{projectId}/area/create")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public IActionResult Create(Guid projectId)
         {
             return View(new CreateProjectElementModel { ProjectId = projectId });
         }
 
         [HttpPost("project/{projectId}/area/create")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> Create(Guid projectId, CreateIssueElementReq req)
         {
             var lastAreaNumber = await this.issueElementRepository.GetLastProjectAreaNumber(projectId);
@@ -49,6 +58,7 @@ namespace ProjectManagment.Controllers
         }
 
         [HttpGet("project/{projectId}/area/{areaId}/edit")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> Edit(Guid projectId, Guid areaId)
         {
             var area = await this.issueElementRepository.GetAreaFromProject(areaId);
@@ -56,8 +66,9 @@ namespace ProjectManagment.Controllers
             return View(new ProjectArea(projectId, area.Id, area.Name, area.Description, area.Number));
         }
 
-        [HttpPost("project/{id}/area/{areaId}/edit")]
-        public async Task<IActionResult> Edit(Guid id, Guid areaId, CreateIssueElementReq req)
+        [HttpPost("project/{projectId}/area/{areaId}/edit")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
+        public async Task<IActionResult> Edit(Guid projectId, Guid areaId, CreateIssueElementReq req)
         {
             var arae = await this.issueElementRepository.GetAreaFromProject(areaId);
             arae.Name = req.Name;
@@ -65,13 +76,20 @@ namespace ProjectManagment.Controllers
 
             await this.issueElementRepository.UpdateArea(arae);
 
-            string url = Url.Content($"~/project/{id}/area/all");
+            string url = Url.Content($"~/project/{projectId}/area/all");
             return Redirect(url);
         }
 
         [HttpPost]
         public async Task<IActionResult> Delete(Guid areaId, Guid projectId)
         {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (!this.projectRepository.isUserInProject(projectId, userId))
+            {
+                return new ForbidResult();
+            }
+
             var area = await this.issueElementRepository.GetAreaFromProject(areaId);
             await this.issueElementRepository.DeleteAreaFromProject(area);
 

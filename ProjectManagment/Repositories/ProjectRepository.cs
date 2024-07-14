@@ -64,8 +64,8 @@ namespace ProjectManagment.Repositories
         public async Task<List<ProjectModel>> GetAllUserProjects(string userId)
         {
             var allProjects = new List<ProjectModel>();
-            allProjects.AddRange(dbContext.Projects.Where(x => x.OwnerId == userId && !x.isDeleted).Select(x=> new ProjectModel(x.Id, x.Name, x.Description)));
-            allProjects.AddRange(dbContext.ProjectsToMembers.Where(x => x.UserId == userId && !x.Project.isDeleted && !x.IsRemoved).Select(x => x.Project).Select(x => new ProjectModel(x.Id, x.Name, x.Description)));
+            allProjects.AddRange(dbContext.Projects.Where(x => x.OwnerId == userId && !x.isDeleted).Select(x=> new ProjectModel(x.Id, x.Name, x.Description, true)));
+            allProjects.AddRange(dbContext.ProjectsToMembers.Where(x => x.UserId == userId && !x.Project.isDeleted && !x.IsRemoved).Select(x => x.Project).Select(x => new ProjectModel(x.Id, x.Name, x.Description, false)));
             return allProjects;
         }
 
@@ -88,6 +88,18 @@ namespace ProjectManagment.Repositories
             }
 
             return dbContext.ProjectsToMembers.Any(x => x.ProjectId == projectId && x.UserId == userId && !x.Project.isDeleted && !x.IsRemoved);
+        }
+
+        public bool isUserProjectOwner(Guid projectId, string userId)
+        {
+            var allMembers = new List<UserModel>();
+            var owner = dbContext.Projects.Any(x => x.Id == projectId && x.OwnerId == userId);
+            if (owner)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public async Task KickUser(string userId, Guid projectId)

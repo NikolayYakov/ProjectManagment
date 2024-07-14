@@ -10,6 +10,7 @@ using System.Security;
 using Microsoft.CodeAnalysis;
 using Microsoft.Build.Evaluation;
 using Microsoft.AspNetCore.Authorization;
+using ProjectManagment.Attributes;
 
 namespace ProjectManagment.Controllers
 {
@@ -36,33 +37,36 @@ namespace ProjectManagment.Controllers
             return View(userProjects);
         }
 
-        [HttpGet("Project/Details/{id}")]
-        public async Task<IActionResult> Details(Guid id)
+        [HttpGet("Project/Details/{projectId}")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
+        public async Task<IActionResult> Details(Guid projectId)
         {
             var projectDetailsModel = new ProjectDetailsModel()
             {
-                ProjectId = id,
+                ProjectId = projectId,
             };
 
             return View(projectDetailsModel);
         }
-        [HttpGet("Project/{id}/Board/{spritnId}")]
-        public async Task<IActionResult> Board(Guid id, Guid spritnId)
+
+        [HttpGet("Project/{projectId}/Board/{spritnId}")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
+        public async Task<IActionResult> Board(Guid projectId, Guid spritnId)
         {
             var model = new Board()
             {
-                ProjectId = id,
+                ProjectId = projectId,
                 SelectedSprintId = spritnId
             };
-            var sprints = await this.issueElementRepository.GetAllProjectSprints(id);
+            var sprints = await this.issueElementRepository.GetAllProjectSprints(projectId);
 
             model.Sprints = sprints.ToList();
 
             var columns = new List<Column>();
             
-            var projectStatuses = await this.issueElementRepository.GetAllProjectStatuses(id);
+            var projectStatuses = await this.issueElementRepository.GetAllProjectStatuses(projectId);
 
-            var issueForSprint = await this.issueRepository.GetIssuesInProjectForSprint(id, spritnId);
+            var issueForSprint = await this.issueRepository.GetIssuesInProjectForSprint(projectId, spritnId);
 
             foreach (var status in projectStatuses)
             {
@@ -87,23 +91,21 @@ namespace ProjectManagment.Controllers
             return View(model);
         }
 
-        [HttpGet("Project/{id}/Board")]
-        public async Task<IActionResult> Board(Guid id)
+        [HttpGet("Project/{projectId}/Board")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
+        public async Task<IActionResult> Board(Guid projectId)
         {
-            var sprintId = await this.issueElementRepository.GetLastSprintFromProject(id);
-            string url = Url.Content($"~/project/{id}/board/{sprintId}/");
+            var sprintId = await this.issueElementRepository.GetLastSprintFromProject(projectId);
+            string url = Url.Content($"~/project/{projectId}/board/{sprintId}/");
             return Redirect(url);
         }
 
-        // GET: Project/Create
         public ActionResult Create()
         {
             return View();
         }
 
-        // POST: Project/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(CreateProjectReq project)
         {
             if (ModelState.IsValid)
@@ -121,81 +123,56 @@ namespace ProjectManagment.Controllers
             return View(project);
         }
 
-        public ActionResult MoveCard(int cardId, int newColumnId)
-        {
-            try
-            {
-                // Here, you would typically update your database or data source
-                // to reflect the new position and column of the card based on the provided parameters.
-
-                // For example, if you're using Entity Framework:
-                /*
-                using (var dbContext = new YourDbContext())
-                {
-                    var card = dbContext.Cards.Find(cardId);
-                    if (card != null)
-                    {
-                        card.ColumnId = newColumnId; // Update column ID
-                        dbContext.SaveChanges(); // Save changes to database
-                    }
-                }
-                */
-
-                // Simulating success response for demonstration purposes
-                return Json(new { success = true, message = "Card moved successfully." });
-            }
-            catch (Exception ex)
-            {
-                // Log or handle the error as needed
-                return Json(new { success = false, message = "An error occurred while moving the card." });
-            }
-        }
-
-        //[HttpGet]
-        //public async Task<List<Project>> GetAllUserProjects(CreateProjectReq projectReq)
+        //public ActionResult MoveCard(int cardId, int newColumnId)
         //{
-        //    var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-        //    return await this.projectRepository.GetAllUserProjects(userId);
+        //    try
+        //    {
+        //        // Here, you would typically update your database or data source
+        //        // to reflect the new position and column of the card based on the provided parameters.
+
+        //        // For example, if you're using Entity Framework:
+        //        /*
+        //        using (var dbContext = new YourDbContext())
+        //        {
+        //            var card = dbContext.Cards.Find(cardId);
+        //            if (card != null)
+        //            {
+        //                card.ColumnId = newColumnId; // Update column ID
+        //                dbContext.SaveChanges(); // Save changes to database
+        //            }
+        //        }
+        //        */
+
+        //        // Simulating success response for demonstration purposes
+        //        return Json(new { success = true, message = "Card moved successfully." });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Log or handle the error as needed
+        //        return Json(new { success = false, message = "An error occurred while moving the card." });
+        //    }
         //}
 
-        [HttpGet]
-        //public async Task<List<Project>> GetProject(CreateProjectReq projectReq)
-        //{
-        //    var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-        //    return await this.projectRepository.GetAllUserProjects(userId);
-        //}
-
-
-        [HttpPut]
-        public async Task<CommanRes> UpdateProjectName(UpdateProjectReq projectReq)
-        {
-            var project = await this.projectRepository.GetProject(projectReq.Id);
-            project.Name = projectReq.Title;
-            project.Description = projectReq.Description;
-
-            await this.projectRepository.UpdateProject(project);
-
-            return new CommanRes();
-        }
 
         [HttpPut]
         public async Task<CommanRes> Delete([FromBody ]DeleteProjectReq projectReq)
         {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             var project = await this.projectRepository.GetProject(projectReq.Id);
 
-            if (project != null)
+            if (project != null && this.projectRepository.isUserProjectOwner(projectReq.Id, userId))
             {
                 await this.projectRepository.DeleteProject(project);
             }
-
-
+            
             return new CommanRes();
         }
 
-        [HttpGet("Edit/{id}")]
-        public async Task<IActionResult> Edit(Guid id)
+        [HttpGet("Edit/{projectId}")]
+        [ServiceFilter(typeof(ProjectOwnerAttribute))]
+        public async Task<IActionResult> Edit(Guid projectId)
         {
-            var project = await projectRepository.GetProject(id);
+            var project = await projectRepository.GetProject(projectId);
             if (project == null)
             {
                 return NotFound();
@@ -204,17 +181,18 @@ namespace ProjectManagment.Controllers
             return View(new ProjectModel(project.Id, project.Name, project.Description));
         }
 
-        [HttpPost("Edit/{id}")]
-        public async Task<IActionResult> Edit(Guid id, UpdateProjectReq projectReq)
+        [HttpPost("Edit/{projectId}")]
+        [ServiceFilter(typeof(ProjectOwnerAttribute))]
+        public async Task<IActionResult> Edit(Guid projectId, UpdateProjectReq projectReq)
         {
-            if (id != projectReq.Id)
+            if (projectId != projectReq.Id)
             {
                 return BadRequest();
             }
 
             if (ModelState.IsValid)
             {
-                var project = await projectRepository.GetProject(id);
+                var project = await projectRepository.GetProject(projectId);
                 project.Name = projectReq.Title;
                 project.Description = projectReq.Description;
 

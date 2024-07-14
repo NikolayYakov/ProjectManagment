@@ -4,6 +4,8 @@
     {
         public Guid ProjectId { get; set; }
         public List<UserModel> Members { get; set; }
+        public bool isOwner { get; set; }
+
         public string SearchTerm { get; set; }
         public int PageNumber { get; set; }
         public int TotalPages { get; set; }

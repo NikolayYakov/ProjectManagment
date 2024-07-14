@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
+using ProjectManagment.Attributes;
 using ProjectManagment.Data;
 using ProjectManagment.DTOs.Requests;
 using ProjectManagment.Models;
@@ -21,9 +22,13 @@ namespace ProjectManagment.Controllers
         }
 
         [HttpGet("Project/{projectId}/member/all")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> All(Guid projectId, string searchTerm, int page = 1)
         {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+
             const int PageSize = 10;
+            
             var members = await this.projectRepository.GetAllProjectMembers(projectId);
 
             var model = new ProjectMembersViewModel
@@ -31,6 +36,7 @@ namespace ProjectManagment.Controllers
                 ProjectId = projectId,
                 SearchTerm = searchTerm,
                 PageNumber = page,
+                isOwner = this.projectRepository.isUserProjectOwner(projectId, currentUserId),
                 TotalPages = (int)Math.Ceiling(members.Count() / (double)PageSize),
                 Members = members.Skip((page - 1) * PageSize).Take(PageSize).ToList()
             };
@@ -39,12 +45,14 @@ namespace ProjectManagment.Controllers
         }
 
         [HttpGet("Project/{projectId}/member/invite")]
+        [ServiceFilter(typeof(ProjectOwnerAttribute))]
         public async Task<IActionResult> Invite(Guid projectId)
         {
             return View(new InviteUserModel { ProjectId = projectId });
         }
 
         [HttpPost("Project/{projectId}/member/invite")]
+        [ServiceFilter(typeof(ProjectOwnerAttribute))]
         public async Task<IActionResult> Invite(Guid projectId, InviteDTO inviteReq)
         {
             var inviteId = await this.projectRepository.InviteUser(inviteReq, projectId);
@@ -93,8 +101,29 @@ namespace ProjectManagment.Controllers
 
         public async Task<IActionResult> Kick(string userId, Guid projectId)
         {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (!this.projectRepository.isUserProjectOwner(projectId, currentUserId))
+            {
+                return new ForbidResult();
+            }
+
             await this.projectRepository.KickUser(userId, projectId);
             string url = Url.Content($"~/project/{projectId}/member/all");
+            return Redirect(url);
+        }
+
+        public async Task<IActionResult> Leave(Guid projectId)
+        {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (!this.projectRepository.isUserInProject(projectId, currentUserId))
+            {
+                return new ForbidResult();
+            }
+
+            await this.projectRepository.KickUser(currentUserId, projectId);
+            string url = Url.Content($"~/project/all");
             return Redirect(url);
         }
     }

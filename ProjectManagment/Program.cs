@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ProjectManagment.Areas.Identity.Data;
+using ProjectManagment.Attributes;
 using ProjectManagment.Data;
 using ProjectManagment.Repositories;
 namespace ProjectManagment
@@ -20,6 +21,9 @@ namespace ProjectManagment
             builder.Services.AddScoped<IssueRepository>();
             builder.Services.AddScoped<IssueElementRepository>();
             builder.Services.AddScoped<CommentRepositorie>();
+
+            builder.Services.AddTransient<ProjectMemberAttribute>();
+            builder.Services.AddTransient<ProjectOwnerAttribute>();
 
             //swagger
             builder.Services.AddEndpointsApiExplorer();
