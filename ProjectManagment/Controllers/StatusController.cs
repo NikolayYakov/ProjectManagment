@@ -65,7 +65,7 @@ namespace ProjectManagment.Controllers
         public async Task<IActionResult> Edit(Guid projectId, Guid statusId)
         {
             var status = await this.issueElementRepository.GetStatusFromProject(statusId);
-            return View(new ProjectStatus(projectId, status.Id, status.Name, status.Description, status.Number));
+            return View(new ProjectStatus(projectId, status.Id, status.Name, status.Description, status.Number, status.Order));
         }
 
         [HttpPost("project/{projectId}/status/{statusId}/edit")]
@@ -75,6 +75,7 @@ namespace ProjectManagment.Controllers
             var status = await this.issueElementRepository.GetStatusFromProject(statusId);
             status.Name = req.Name;
             status.Description = req.Description;
+            status.Order = req.Order;
 
             await this.issueElementRepository.UpdateStatus(status);
 

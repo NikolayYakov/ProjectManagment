@@ -34,6 +34,7 @@ namespace ProjectManagment.Repositories
             {
                 Id = new Guid(),
                 Name = issueElementReq.Name,
+                Order= issueElementReq.Order,
                 Description = issueElementReq.Description,
                 Number = lastStatusNumber + 1,
                 ProjectId = projectId,
@@ -211,7 +212,9 @@ namespace ProjectManagment.Repositories
         public async Task<IQueryable<ProjectStatus>> GetAllProjectStatuses(Guid projectId)
         {
             return this.dbContext.Status.Where(x => x.ProjectId == projectId && !x.isDeleted)
-                                        .Select(x => new ProjectStatus(projectId, x.Id, x.Name, x.Description, x.Number));
+                                        .OrderBy(x => x.Order == null)
+                                        .ThenBy(x=>x.Order)
+                                        .Select(x => new ProjectStatus(projectId, x.Id, x.Name, x.Description, x.Number, x.Order));
         }
 
         public async Task<IQueryable<ProjectSprint>> GetAllProjectSprints(Guid projectId)

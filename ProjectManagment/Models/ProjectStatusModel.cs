@@ -17,16 +17,18 @@ namespace ProjectManagment.Models
         {
         }
 
-        public ProjectStatus(Guid projectId, Guid statusId, string name, string description, int number)
+        public ProjectStatus(Guid projectId, Guid statusId, string name, string description, int number, decimal? order)
         {
             this.ProjectId = projectId;
             this.StatusId = statusId;
             this.Name = name;
             this.Description = description;
             this.Number = number;
+            this.Order = order;
         }
         public Guid StatusId { get; set; }
         public Guid ProjectId { get; set; }
+        public decimal? Order { get; set; }
         public int Number { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
