@@ -7,7 +7,7 @@
 
 <h2>Project Areas</h2>
 
-<form method="get" action="@Url.Action("AllAreas")">
+<form method="get" action="@Url.Action("all")">
     <input type="text" name="searchTerm" value="@Model.SearchTerm" placeholder="Search areas..." />
     <button type="submit">Search</button>
 </form>
@@ -46,12 +46,12 @@
 <div class="pagination-container">
     @if (Model.PageNumber > 1)
     {
-        <a href="@Url.Action("AllAreas", new { page = Model.PageNumber - 1, searchTerm = Model.SearchTerm })">Previous</a>
+        <a href="~/project/@Model.ProjectId/area/all?page=@(Model.PageNumber - 1)&searchTerm=@Model.SearchTerm">Previous</a>
     }
     Page @Model.PageNumber of @Model.TotalPages
     @if (Model.PageNumber < Model.TotalPages)
     {
-        <a href="@Url.Action("AllAreas", new { page = Model.PageNumber + 1, searchTerm = Model.SearchTerm })">Next</a>
+        <a href="~/project/@Model.ProjectId/area/all?page=@(Model.PageNumber + 1)&searchTerm=@Model.SearchTerm">Next</a>
     }
 </div>
 

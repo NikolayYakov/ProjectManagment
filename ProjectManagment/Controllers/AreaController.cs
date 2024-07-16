@@ -27,13 +27,22 @@ namespace ProjectManagment.Controllers
         public async Task<IActionResult> All(Guid projectId, int page = 1, string searchTerm = "")
         {
             var areas = await this.issueElementRepository.GetAllProjectAreas(projectId);
+
+            var filterdAreas = areas.ToList().Where(x => x.Name.ToLower().Contains(searchTerm.ToLower()) || searchTerm == string.Empty);
+
+            var totalItems = filterdAreas.Count();
+            var itemsPerPage = 10;
+            var totalPages = (int)Math.Ceiling(totalItems / (double)itemsPerPage);
+
+            var areasForPage = filterdAreas.Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToList();
+
             var model = new ProjectAreaViewModel
             {
                 PageNumber = page,
-                TotalPages = 1,
+                TotalPages = totalPages,
                 SearchTerm = searchTerm,
                 ProjectId = projectId,
-                Areas = areas.ToList()
+                Areas = areasForPage
             };
 
             return View(model);
