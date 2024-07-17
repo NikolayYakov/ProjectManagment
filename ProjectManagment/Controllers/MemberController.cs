@@ -26,10 +26,14 @@ namespace ProjectManagment.Controllers
         public async Task<IActionResult> All(Guid projectId, string searchTerm, int page = 1)
         {
             var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-            const int PageSize = 10;
-            
             var members = await this.projectRepository.GetAllProjectMembers(projectId);
+
+            var filterdMembers = members.ToList().Where(x => x.Name.ToLower().Contains(searchTerm.ToLower()) || searchTerm == string.Empty);
+            var totalItems = filterdMembers.Count();
+            var itemsPerPage = 10;
+            var totalPages = (int)Math.Ceiling(totalItems / (double)itemsPerPage);
+
+            var membersForPage = filterdMembers.Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToList();
 
             var model = new ProjectMembersViewModel
             {
@@ -37,8 +41,8 @@ namespace ProjectManagment.Controllers
                 SearchTerm = searchTerm,
                 PageNumber = page,
                 isOwner = this.projectRepository.isUserProjectOwner(projectId, currentUserId),
-                TotalPages = (int)Math.Ceiling(members.Count() / (double)PageSize),
-                Members = members.Skip((page - 1) * PageSize).Take(PageSize).ToList()
+                TotalPages = totalPages,
+                Members = membersForPage
             };
 
             return View(model);

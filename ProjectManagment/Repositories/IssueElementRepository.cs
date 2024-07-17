@@ -266,7 +266,7 @@ namespace ProjectManagment.Repositories
 
         public async Task<int> GetLastProjectSprintNumber(Guid projectId)
         {
-            var lastSprint = await this.dbContext.Status.Where(x => x.ProjectId == projectId).OrderBy(x => x.Number).LastOrDefaultAsync();
+            var lastSprint = await this.dbContext.Sprints.Where(x => x.ProjectId == projectId).OrderBy(x => x.Number).LastOrDefaultAsync();
 
             return lastSprint == null ? 0 : lastSprint.Number;
         }

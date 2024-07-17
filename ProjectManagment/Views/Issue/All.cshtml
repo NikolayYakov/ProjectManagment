@@ -48,12 +48,12 @@
 <div class="pagination-container">
     @if (Model.PageNumber > 1)
     {
-        <a href="@Url.Action("AllIssues", new { page = Model.PageNumber - 1, searchTerm = Model.SearchTerm })">Previous</a>
+        <a href="~/project/@Model.ProjectId/issue/all?page=@(Model.PageNumber - 1)&searchTerm=@Model.SearchTerm">Previous</a>
     }
     Page @Model.PageNumber of @Model.TotalPages
     @if (Model.PageNumber < Model.TotalPages)
     {
-        <a href="@Url.Action("AllIssues", new { page = Model.PageNumber + 1, searchTerm = Model.SearchTerm })">Next</a>
+        <a href="~/project/@Model.ProjectId/issue/all?page=@(Model.PageNumber + 1)&searchTerm=@Model.SearchTerm">Next</a>
     }
 </div>
 

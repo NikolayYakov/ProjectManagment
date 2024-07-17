@@ -73,12 +73,12 @@ namespace ProjectManagment.Controllers
 
             var totalIssues = issueModels.Count;
             var totalPages = (int)Math.Ceiling((double)totalIssues / pageSize);
-            var issues = allIssues.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            var issues = issueModels.Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
             var viewModel = new IssueViewModel
             {
                 ProjectId = projectId,
-                Issues = issueModels,
+                Issues = issues,
                 SearchTerm = searchTerm,
                 PageNumber = page,
                 PageSize = pageSize,
@@ -213,8 +213,6 @@ namespace ProjectManagment.Controllers
         [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> Create(Guid projectId, IssueCreateModel model)
         {
-            //if (ModelState.IsValid)
-            //{
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             var lastNumber = await this.issueRepository.GetLastIssueNumber(projectId);
             var issueId = await this.issueRepository.CreateIssue(model, userId, lastNumber);
@@ -223,9 +221,6 @@ namespace ProjectManagment.Controllers
 
             string url = Url.Content($"~/project/{projectId}/issue/all");
             return Redirect(url);
-            //}
-            // If ModelState is not valid, return back to the create page with the model
-            return View(model);
         }
 
         [HttpPost("project/{projectId}/issue/{issueId}/comment")]

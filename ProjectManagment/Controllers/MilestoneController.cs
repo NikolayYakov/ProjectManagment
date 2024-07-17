@@ -27,12 +27,21 @@ namespace ProjectManagment.Controllers
         public async Task<IActionResult> All(Guid projectId, int page = 1, string searchTerm = "")
         {
             var milestones = await this.issueElementRepository.GetAllProjectMilestones(projectId);
+
+            var filterdMilestone = milestones.ToList().Where(x => x.Name.ToLower().Contains(searchTerm.ToLower()) || searchTerm == string.Empty);
+
+            var totalItems = milestones.Count();
+            var itemsPerPage = 10;
+            var totalPages = (int)Math.Ceiling(totalItems / (double)itemsPerPage);
+
+            var milestoneForPage = milestones.Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToList();
+
             var model = new ProjectMilestoneViewModel
             {
                 PageNumber = page,
-                TotalPages = 1, // Assuming there's only one page for demonstration
+                TotalPages = totalPages,
                 SearchTerm = searchTerm,
-                Milestones = milestones.ToList(),
+                Milestones = milestoneForPage.ToList(),
                 ProjectId = projectId
             };
 

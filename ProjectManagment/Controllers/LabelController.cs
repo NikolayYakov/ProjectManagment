@@ -28,12 +28,20 @@ namespace ProjectManagment.Controllers
         {
             var labels = await this.issueElementRepository.GetAllProjectLabels(projectId);
 
+            var filterdLabels = labels.ToList().Where(x => x.Name.ToLower().Contains(searchTerm.ToLower()) || searchTerm == string.Empty);
+
+            var totalItems = filterdLabels.Count();
+            var itemsPerPage = 10;
+            var totalPages = (int)Math.Ceiling(totalItems / (double)itemsPerPage);
+
+            var labelsForPage = filterdLabels.Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToList();
+
             var model = new ProjectLabelViewModel
             {
                 PageNumber = page,
-                TotalPages = 1, // Assuming there's only one page for demonstration
+                TotalPages = totalPages,
                 SearchTerm = searchTerm,
-                Labels = labels.ToList(),
+                Labels = labelsForPage.ToList(),
                 ProjectId = projectId
             };
 

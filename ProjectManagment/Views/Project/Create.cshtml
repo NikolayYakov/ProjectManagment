@@ -2,41 +2,57 @@
 
 @{
     ViewBag.Title = "Create Project";
+    Layout = "_Layout"; 
 }
 
-<h2>Create Project</h2>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h2 class="mb-4 text-center">Create Project</h2>
+            <form action="@Url.Content("~/project/create")" method="post">
 
-@using (Html.BeginForm("Create", "Project", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
-{
-    @Html.AntiForgeryToken()
+                <div class="form-group">
+                    <label for="Title">Title</label>
+                    <input type="text" class="form-control" id="Title" name="Title" required />
+                </div>
 
-    <div class="form-group">
-        @Html.LabelFor(model => model.Title, new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.Title, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.Title, "", new { @class = "text-danger" })
+                <div class="form-group">
+                    <label for="Description">Description</label>
+                    <textarea class="form-control" id="Description" name="Description" rows="4" required></textarea>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary btn-lg">Create</button>
+                    <a href="~/project/all" class="btn btn-secondary btn-lg">Cancel</a>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <div class="form-group">
-        @Html.LabelFor(model => model.Description, new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.TextAreaFor(model => model.Description, new { @class = "form-control", rows = 4 })
-            @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
-        </div>
-    </div>
+<style>
+    .form-group {
+        margin-bottom: 20px;
+    }
 
-    <div class="form-group">
-        <div class="col-md-offset-2 col-md-10">
-            <button type="submit" class="btn btn-primary">Create</button>
-        </div>
-    </div>
-}
+    label {
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
 
-    <style>
-        .form-horizontal {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-    </style>
+    .btn {
+        margin-right: 10px;
+        padding: 10px 20px;
+    }
 
+    .container {
+        background: #f8f9fa;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+        color: #343a40;
+    }
+</style>

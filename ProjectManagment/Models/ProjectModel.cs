@@ -1,4 +1,6 @@
-﻿namespace ProjectManagment.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace ProjectManagment.Models
 {
     public class ProjectModel
     {
@@ -12,7 +14,9 @@
         }
         public Guid ProjectId { get; set; }
         public bool isOwner {  get; set; }
+        [Required]
         public string Title { get; set; }
+        [Required]
         public string Description { get; set; }
     }
 }

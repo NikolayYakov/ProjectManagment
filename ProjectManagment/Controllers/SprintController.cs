@@ -25,12 +25,20 @@ namespace ProjectManagment.Controllers
         {
             var sprints = await this.issueElementRepository.GetAllProjectSprints(projectId);
 
+            var filterdSprints = sprints.ToList().Where(x => x.Name.ToLower().Contains(searchTerm.ToLower()) || searchTerm == string.Empty);
+
+            var totalItems = filterdSprints.Count();
+            var itemsPerPage = 10;
+            var totalPages = (int)Math.Ceiling(totalItems / (double)itemsPerPage);
+
+            var sprintForPage = filterdSprints.Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToList();
+
             var model = new ProjectSprintViewModel
             {
                 PageNumber = page,
-                TotalPages = 1, // Assuming there's only one page for demonstration
+                TotalPages = totalPages,
                 SearchTerm = searchTerm,
-                Sprints = sprints.ToList(),
+                Sprints = sprintForPage.ToList(),
                 ProjectId = projectId
             };
 

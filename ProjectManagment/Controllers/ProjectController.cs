@@ -108,51 +108,15 @@ namespace ProjectManagment.Controllers
         [HttpPost]
         public async Task<ActionResult> Create(CreateProjectReq project)
         {
-            if (ModelState.IsValid)
-            {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-                if (!await this.projectRepository.DoesUserContainProjectWithName(project.Title, userId))
-                {
-                    await this.projectRepository.CreateProject(project, userId);
-                }
-              
-                return RedirectToAction("all"); // Redirect to the index or another appropriate action
+            if (!await this.projectRepository.DoesUserContainProjectWithName(project.Title, userId))
+            {
+                await this.projectRepository.CreateProject(project, userId);
             }
 
-            return View(project);
+            return RedirectToAction("all");
         }
-
-        //public ActionResult MoveCard(int cardId, int newColumnId)
-        //{
-        //    try
-        //    {
-        //        // Here, you would typically update your database or data source
-        //        // to reflect the new position and column of the card based on the provided parameters.
-
-        //        // For example, if you're using Entity Framework:
-        //        /*
-        //        using (var dbContext = new YourDbContext())
-        //        {
-        //            var card = dbContext.Cards.Find(cardId);
-        //            if (card != null)
-        //            {
-        //                card.ColumnId = newColumnId; // Update column ID
-        //                dbContext.SaveChanges(); // Save changes to database
-        //            }
-        //        }
-        //        */
-
-        //        // Simulating success response for demonstration purposes
-        //        return Json(new { success = true, message = "Card moved successfully." });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Log or handle the error as needed
-        //        return Json(new { success = false, message = "An error occurred while moving the card." });
-        //    }
-        //}
-
 
         [HttpPut]
         public async Task<CommanRes> Delete([FromBody ]DeleteProjectReq projectReq)
@@ -168,7 +132,7 @@ namespace ProjectManagment.Controllers
             return new CommanRes();
         }
 
-        [HttpGet("Edit/{projectId}")]
+        [HttpGet("project/{projectId}/edit")]
         [ServiceFilter(typeof(ProjectOwnerAttribute))]
         public async Task<IActionResult> Edit(Guid projectId)
         {
@@ -181,26 +145,18 @@ namespace ProjectManagment.Controllers
             return View(new ProjectModel(project.Id, project.Name, project.Description));
         }
 
-        [HttpPost("Edit/{projectId}")]
+        [HttpPost("project/{projectId}/edit")]
         [ServiceFilter(typeof(ProjectOwnerAttribute))]
         public async Task<IActionResult> Edit(Guid projectId, UpdateProjectReq projectReq)
         {
-            if (projectId != projectReq.Id)
-            {
-                return BadRequest();
-            }
 
-            if (ModelState.IsValid)
-            {
-                var project = await projectRepository.GetProject(projectId);
-                project.Name = projectReq.Title;
-                project.Description = projectReq.Description;
+            var project = await projectRepository.GetProject(projectId);
+            project.Name = projectReq.Title;
+            project.Description = projectReq.Description;
 
-                await projectRepository.UpdateProject(project);
-                return RedirectToAction("all");
-            }
+            await projectRepository.UpdateProject(project);
 
-            return View(new ProjectModel(projectReq.Id, projectReq.Title, projectReq.Description));
+            return RedirectToAction("all");
         }
     }
 }

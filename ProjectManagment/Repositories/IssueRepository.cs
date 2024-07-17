@@ -27,7 +27,7 @@ namespace ProjectManagment.Repositories
 
         public async Task<int> GetLastIssueNumber(Guid projectId)
         {
-            var issue = dbContext.Issues.OrderBy(x => x.CreatedAt).FirstOrDefault(x => x.ProjectId == projectId);
+            var issue = dbContext.Issues.OrderBy(x => x.CreatedAt).LastOrDefault(x => x.ProjectId == projectId);
 
             return issue == null ? 0: issue.Number;
         }

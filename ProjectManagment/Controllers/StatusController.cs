@@ -30,12 +30,20 @@ namespace ProjectManagment.Controllers
             
             var statuses = await this.issueElementRepository.GetAllProjectStatuses(projectId);
 
+            var filterdStatuses = statuses.ToList().Where(x => x.Name.ToLower().Contains(searchTerm.ToLower()) || searchTerm == string.Empty);
+
+            var totalItems = filterdStatuses.Count();
+            var itemsPerPage = 10;
+            var totalPages = (int)Math.Ceiling(totalItems / (double)itemsPerPage);
+
+            var statusForPage = filterdStatuses.Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToList();
+
             var model = new ProjectStatusViewModel
             {
                 PageNumber = page,
-                TotalPages = 1, // Assuming there's only one page for demonstration
+                TotalPages = totalPages,
                 SearchTerm = searchTerm,
-                Statuses = statuses.ToList(),
+                Statuses = statusForPage.ToList(),
                 ProjectId = projectId
             };
 
