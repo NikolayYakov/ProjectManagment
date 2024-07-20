@@ -91,6 +91,24 @@ namespace ProjectManagment.Controllers
             return View(model);
         }
 
+        [HttpGet("Project/{projectId}/ReleaseNotes")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
+        public async Task<IActionResult> ReleaseNotes(Guid projectId)
+        {
+            var milestones = await this.issueElementRepository.GetAllProjectMilestones(projectId);
+            var releaseNotes = new GenerateReleaseNotesModel(projectId, milestones.ToList());
+
+            return View(releaseNotes);
+        }
+
+        [HttpPost("Project/{projectId}/ReleaseNotes")]
+        [ServiceFilter(typeof(ProjectMemberAttribute))]
+        public async Task<IActionResult> ReleaseNotes(Guid projectId, GenerateReleaseNotesModel model)
+        {
+            string url = Url.Content($"~/project/{projectId}/details");
+            return Redirect(url);
+        }
+
         [HttpGet("Project/{projectId}/Board")]
         [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> Board(Guid projectId)

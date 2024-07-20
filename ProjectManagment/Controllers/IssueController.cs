@@ -161,20 +161,20 @@ namespace ProjectManagment.Controllers
 
         [HttpPost("project/{projectId}/issue/{issueId}/edit")]
         [ServiceFilter(typeof(ProjectMemberAttribute))]
-        public async Task<IActionResult> Edit(Guid projectId, Guid issueId,IssueEditModel issueEditModel)
+        public async Task<IActionResult> Edit(Guid projectId, Guid issueId, IssueEditModel issueEditModel)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             await this.issueRepository.AddLabels(issueId, issueEditModel.Labels);
             await this.issueRepository.AssignUser(issueId, issueEditModel.Assignees);
+
             var issue = await this.issueRepository.GetIssue(issueId);
 
             issue.Title = issueEditModel.Title;
             issue.Body = issueEditModel.Body;
 
-            issue.AreaId = Guid.Parse(issueEditModel.Area);
-            issue.MilestoneId = Guid.Parse(issueEditModel.Milestone);
-            issue.StatusId = Guid.Parse(issueEditModel.Status);
-            issue.SprintId = Guid.Parse(issueEditModel.Sprint);
+            issue.AreaId = !string.IsNullOrEmpty(issueEditModel.Area) ? Guid.Parse(issueEditModel.Area) : null;
+            issue.MilestoneId = !string.IsNullOrEmpty(issueEditModel.Milestone) ? Guid.Parse(issueEditModel.Milestone) : null;
+            issue.StatusId = !string.IsNullOrEmpty(issueEditModel.Status) ? Guid.Parse(issueEditModel.Status) : null;
+            issue.SprintId = !string.IsNullOrEmpty(issueEditModel.Sprint) ? Guid.Parse(issueEditModel.Sprint) : null;
 
             await this.issueRepository.UpdateIssue(issue);
 
@@ -216,6 +216,7 @@ namespace ProjectManagment.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             var lastNumber = await this.issueRepository.GetLastIssueNumber(projectId);
             var issueId = await this.issueRepository.CreateIssue(model, userId, lastNumber);
+
             await this.issueRepository.AddLabels(issueId, model.Labels);
             await this.issueRepository.AssignUser(issueId, model.Assignees);
 
@@ -227,8 +228,6 @@ namespace ProjectManagment.Controllers
         [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> Comment(Guid projectId, Guid issueId, CreateCommentReq model)
         {
-            //if (ModelState.IsValid)
-            //{
             var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             var commnet = new Comment()
@@ -240,7 +239,7 @@ namespace ProjectManagment.Controllers
                 Content = model.Content,
             };
 
-            this.commentRepository.CreateComment(commnet);
+            await this.commentRepository.CreateComment(commnet);
             string url = Url.Content($"~/project/{projectId}/issue/{issueId}/details");
             return Redirect(url);
         }

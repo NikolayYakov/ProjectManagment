@@ -43,10 +43,10 @@ namespace ProjectManagment.Repositories
                 Body = issueReq.Body,
                 OwnerId = userId,
                 ProjectId = issueReq.ProjectId,
-                StatusId = Guid.Parse(issueReq.Status),
-                AreaId = Guid.Parse(issueReq.Area),
-                MilestoneId = Guid.Parse(issueReq.Milestone),
-                SprintId = Guid.Parse(issueReq.Sprint),
+                StatusId = !string.IsNullOrEmpty(issueReq.Status) ? Guid.Parse(issueReq.Status) : null,
+                AreaId = !string.IsNullOrEmpty(issueReq.Area) ? Guid.Parse(issueReq.Area) : null,
+                MilestoneId = !string.IsNullOrEmpty(issueReq.Milestone) ? Guid.Parse(issueReq.Milestone) : null,
+                SprintId = !string.IsNullOrEmpty(issueReq.Sprint) ? Guid.Parse(issueReq.Sprint) : null,
             };
             
             dbContext.Issues.Add(issue);
@@ -93,9 +93,20 @@ namespace ProjectManagment.Repositories
         public async Task AssignUser(Guid issueId, List<string> assigneesIds)
         {
             List<UsersToIssues> usersToIssues = new List<UsersToIssues>();
+
+            var allAssignees = await this.dbContext.UsersToIssues.Where(x => x.IssueId == issueId).ToListAsync();
+            foreach (var assignee in allAssignees)
+            {
+                assignee.IsRemoved = true;
+            }
+
+            if (assigneesIds == null)
+            {
+                return;
+            }
+
             foreach (var assigneeId in assigneesIds)
             {
-
                 if (await ReAssignUser(issueId, assigneeId))
                 {
                     continue;
@@ -127,15 +138,21 @@ namespace ProjectManagment.Repositories
             return false;
         }
 
-        public async Task UnAssignUser(UsersToIssues userToIssue)
-        {
-            userToIssue.IsRemoved = true;
-            dbContext.SaveChanges();
-        }
-
         public async Task AddLabels(Guid issueId, List<string> labelsIds)
         {
             List<LabelsToIssues> labelsToIssues = new List<LabelsToIssues>();
+
+            var allLabels = await this.dbContext.LabelsToIssues.Where(x=>x.IssueId== issueId).ToListAsync();
+            foreach (var label in allLabels)
+            {
+                label.IsRemoved = true;
+            }
+
+            if (labelsIds == null)
+            {
+                return;
+            }
+
             foreach (var labelId in labelsIds)
             {
                 var labelGuid = Guid.Parse(labelId);
@@ -167,12 +184,6 @@ namespace ProjectManagment.Repositories
                 return true;
             }
             return false;
-        }
-
-        public async Task RemoveLabel(LabelsToIssues labelToIssue)
-        {
-            labelToIssue.IsRemoved = true;
-            dbContext.SaveChanges();
         }
     }
 }
