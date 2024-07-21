@@ -28,7 +28,7 @@ namespace ProjectManagment.Controllers
             var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             var members = await this.projectRepository.GetAllProjectMembers(projectId);
 
-            var filterdMembers = members.ToList().Where(x =>  searchTerm == string.Empty || x.Name.ToLower().Contains(searchTerm.ToLower()));
+            var filterdMembers = members.ToList().Where(x => string.IsNullOrEmpty(searchTerm) || x.Name.ToLower().Contains(searchTerm?.ToLower()));
             var totalItems = filterdMembers.Count();
             var itemsPerPage = 10;
             var totalPages = (int)Math.Ceiling(totalItems / (double)itemsPerPage);

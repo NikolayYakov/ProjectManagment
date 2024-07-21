@@ -1,4 +1,4 @@
-﻿@model Board 
+﻿@model Board
 
 @{
     ViewData["Title"] = "Board";
@@ -15,19 +15,19 @@
 
     .board {
         display: flex;
-        flex-wrap: wrap;
         gap: 20px;
         margin-top: 20px;
+        overflow-x: auto;
     }
 
     .column {
-        flex: 1;
+        flex: 0 0 300px;
         background-color: #f0f0f0;
         padding: 10px;
         border: 1px solid #ddd;
         border-radius: 5px;
         box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-        margin-bottom: 20px; 
+        margin-bottom: 20px;
     }
 
     .column-title {
@@ -96,7 +96,7 @@
                 {
                     <a href="~/project/@Model.ProjectId/issue/@card.id/details" class="card-link">
                         <div class="card">
-                           <h4 class="card-title">@card.Number. @card.Title</h4>
+                            <h4 class="card-title">@card.Number. @card.Title</h4>
                         </div>
                     </a>
                 }

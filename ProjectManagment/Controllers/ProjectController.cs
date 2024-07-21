@@ -11,6 +11,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.Build.Evaluation;
 using Microsoft.AspNetCore.Authorization;
 using ProjectManagment.Attributes;
+using ProjectManagment.ReleaseNotesWriters;
+using System.Xml;
+using System.Xml.Schema;
+using System.Net;
+using System.IO;
 
 namespace ProjectManagment.Controllers
 {
@@ -20,13 +25,15 @@ namespace ProjectManagment.Controllers
         private ProjectRepository projectRepository;
         private IssueElementRepository issueElementRepository;
         private IssueRepository issueRepository;
+        private DocumentWriter documentWriter;
 
 
-        public ProjectController(ProjectRepository projectRepository, IssueElementRepository issueElementRepository, IssueRepository issueRepository)
+        public ProjectController(ProjectRepository projectRepository, IssueElementRepository issueElementRepository, IssueRepository issueRepository, XmlDocumentWriter documentWriter)
         {
             this.projectRepository = projectRepository;
             this.issueElementRepository = issueElementRepository;
             this.issueRepository = issueRepository;
+            this.documentWriter = documentWriter;
         }
 
         public async Task<IActionResult> All()
@@ -105,8 +112,14 @@ namespace ProjectManagment.Controllers
         [ServiceFilter(typeof(ProjectMemberAttribute))]
         public async Task<IActionResult> ReleaseNotes(Guid projectId, GenerateReleaseNotesModel model)
         {
-            string url = Url.Content($"~/project/{projectId}/details");
-            return Redirect(url);
+            var issues = await this.issueRepository.GetIssuesInProjectForMilestone(projectId, model.SelectedMilestoneId);
+            var xmlMemoryStream = documentWriter.Write(issues);
+
+            var file = new FileStreamResult(xmlMemoryStream, "application/xml")
+            {
+                FileDownloadName = "ReleaseNotes.xml"
+            };
+            return file;
         }
 
         [HttpGet("Project/{projectId}/Board")]

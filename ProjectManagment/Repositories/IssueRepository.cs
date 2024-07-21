@@ -80,6 +80,14 @@ namespace ProjectManagment.Repositories
                 
         }
 
+        public async Task<IQueryable<ReleaseNotesIssues>> GetIssuesInProjectForMilestone(Guid projectId, Guid? milestoneId)
+        {
+            return dbContext.Issues
+                .Where(x => x.ProjectId == projectId && !x.IsDeleted && x.MilestoneId == milestoneId)
+                .Include(x => x.Area)
+                .Select(x => new ReleaseNotesIssues(x.Title, x.Area.Name));
+        }
+
         public async Task<IQueryable<IssueLabelDTO>> GetIssueLabels(Guid issueId)
         {
             return dbContext.LabelsToIssues.Where(x => x.IssueId == issueId && !x.IsRemoved).Select(x => new IssueLabelDTO { Id = x.LabelId, Name = x.Label.Name }) ;

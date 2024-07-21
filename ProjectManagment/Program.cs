@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using ProjectManagment.Areas.Identity.Data;
 using ProjectManagment.Attributes;
 using ProjectManagment.Data;
+using ProjectManagment.ReleaseNotesWriters;
 using ProjectManagment.Repositories;
+
 namespace ProjectManagment
 {
     public class Program
@@ -24,6 +26,8 @@ namespace ProjectManagment
 
             builder.Services.AddTransient<ProjectMemberAttribute>();
             builder.Services.AddTransient<ProjectOwnerAttribute>();
+            builder.Services.AddTransient<XmlDocumentWriter>();
+
 
             //swagger
             builder.Services.AddEndpointsApiExplorer();
