@@ -22,7 +22,7 @@ namespace ProjectManagment.Repositories
         public async Task<Issue> GetIssue(Guid issueId)
         {
              return await dbContext.Issues.Where(x => x.Id == issueId && !x.IsDeleted)
-                 .Include(x => x.Labels).Include(x => x.Milestone).Include(x => x.Assignees).Include(x => x.Area).Include(x => x.Status).Include(x=>x.Sprint).FirstOrDefaultAsync();
+                 .Include(x => x.Milestone).Include(x => x.Area).Include(x => x.Status).Include(x=>x.Sprint).FirstOrDefaultAsync();
         }
 
         public async Task<int> GetLastIssueNumber(Guid projectId)
@@ -70,7 +70,7 @@ namespace ProjectManagment.Repositories
         {
             return dbContext.Issues
                 .Where(x => x.ProjectId == projectId && !x.IsDeleted)
-                .Include(x => x.Labels).Include(x => x.Milestone).Include(x=>x.Assignees).Include(x=>x.Area).Include(x=>x.Status).Include(x=>x.Sprint);
+                .Include(x => x.Milestone).Include(x=>x.Area).Include(x=>x.Status).Include(x=>x.Sprint);
         }
 
         public async Task<IQueryable<Issue>> GetIssuesInProjectForSprint(Guid projectId, Guid sprintId)

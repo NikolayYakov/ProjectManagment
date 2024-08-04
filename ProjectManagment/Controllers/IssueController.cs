@@ -49,11 +49,11 @@ namespace ProjectManagment.Controllers
                     Title = issue.Title,
                     Assignees = string.Join(", ", issueAssignees.Select(x=>x.Name)),
                     Labels = string.Join(", ", issueLabels.Select(x=>x.Name)),
-                    Milestone = issue.Milestone.Name,
-                    Status = issue.Status.Name,
-                    Area = issue.Area.Name,
+                    Milestone = issue.Milestone?.Name,
+                    Status = issue.Status?.Name,
+                    Area = issue.Area?.Name,
                     ProjectId = issue.ProjectId,
-                    Sprint = issue.Sprint.Name
+                    Sprint = issue.Sprint?.Name
                 };
 
                 issueModels.Add(issueModel);
@@ -107,10 +107,10 @@ namespace ProjectManagment.Controllers
                 Body = issue.Body,
                 Assignees = issueAssignees.Select(x => x.Name).ToList(),
                 Labels = issueLabels.Select(x => x.Name).ToList(),
-                Milestone = issue.Milestone.Name,
-                Status = issue.Status.Name,
-                Sprint = issue.Sprint.Name,
-                Area = issue.Area.Name,
+                Milestone = issue.Milestone?.Name,
+                Status = issue.Status?.Name,
+                Sprint = issue.Sprint?.Name,
+                Area = issue.Area?.Name,
                 ProjectId = issue.ProjectId,
                 CreatedAt = DateTime.UtcNow,
                 Comments = issueComment?.Select(x=>new CommentModel { PostedAt = x.PostedAt, Author = x.Author.Email, Text = x.Content }).ToList() ?? new List<CommentModel>()
@@ -141,12 +141,12 @@ namespace ProjectManagment.Controllers
                 ProjectId = projectId,
                 Title = issue.Title,
                 Body = issue.Body,
-                Assignees = issueAssignees.Select(x=> x.Id).ToList(),
-                Area = issue.Area.Id.ToString(),
-                Labels = issueLabels.Select(x => x.Id.ToString()).ToList(),
-                Milestone = issue.Milestone.Id.ToString(),
-                Sprint = issue.Sprint.Id.ToString(),
-                Status = issue.Status.Id.ToString(),
+                Assignees = issueAssignees?.Select(x=> x.Id).ToList(),
+                Area = issue.Area?.Id.ToString(),
+                Labels = issueLabels?.Select(x => x.Id.ToString()).ToList(),
+                Milestone = issue.Milestone?.Id.ToString(),
+                Sprint = issue.Sprint?.Id.ToString(),
+                Status = issue.Status?.Id.ToString(),
 
                 AvailableAssignees = availableAssignees.ToList(),
                 AvailableAreas = availalbeAreas.ToList(),
