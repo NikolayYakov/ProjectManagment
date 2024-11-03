@@ -8,7 +8,7 @@
    
    1.4 Run the app.
 
-**3. Main functionality**
+**2. Main functionality**
 
    2.1 Authentication and Authorization.
    
