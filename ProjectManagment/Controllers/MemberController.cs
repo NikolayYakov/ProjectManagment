@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using ProjectManagment.Attributes;
 using ProjectManagment.Data;
 using ProjectManagment.DTOs.Requests;
+using ProjectManagment.EmailService;
 using ProjectManagment.Models;
 using ProjectManagment.Repositories;
 using ProjectManagment.Singleton;
@@ -15,10 +16,12 @@ namespace ProjectManagment.Controllers
     public class MemberController : Controller
     {
         private ProjectRepository projectRepository;
+        private IEmailSender EmailSender;
 
-        public MemberController(ProjectRepository projectRepository)
+        public MemberController(ProjectRepository projectRepository, IEmailSender emailSender)
         {
             this.projectRepository = projectRepository;
+            this.EmailSender = emailSender;
         }
 
         [HttpGet("Project/{projectId}/member/all")]
@@ -65,6 +68,12 @@ namespace ProjectManagment.Controllers
             {
                 errorMessage = "User does not exist";
             }
+            else
+            {
+                var body = $"You have been invited to join a project. Invite code: {inviteId}";
+                EmailSender.SendEmailAsync(inviteReq.Email, "Project Invite", body);
+            }
+
 
             return View(new InviteUserModel { ProjectId = projectId, InviteId = inviteId, isInvited = true, ErrorMessage = errorMessage });
         }

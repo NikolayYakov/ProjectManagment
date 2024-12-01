@@ -49,11 +49,11 @@ namespace ProjectManagment.Controllers
                     Title = issue.Title,
                     Assignees = string.Join(", ", issueAssignees.Select(x=>x.Name)),
                     Labels = string.Join(", ", issueLabels.Select(x=>x.Name)),
-                    Milestone = issue.Milestone?.Name,
-                    Status = issue.Status?.Name,
-                    Area = issue.Area?.Name,
+                    Milestone = issue.Milestone?.isDeleted == false ? issue.Milestone?.Name : null,
+                    Status = issue.Status?.isDeleted == false ? issue.Status?.Name : null,
+                    Area = issue.Area?.isDeleted == false ? issue.Area?.Name : null,
                     ProjectId = issue.ProjectId,
-                    Sprint = issue.Sprint?.Name
+                    Sprint = issue.Sprint?.isDeleted == false ? issue.Sprint?.Name : null
                 };
 
                 issueModels.Add(issueModel);
@@ -107,10 +107,10 @@ namespace ProjectManagment.Controllers
                 Body = issue.Body,
                 Assignees = issueAssignees.Select(x => x.Name).ToList(),
                 Labels = issueLabels.Select(x => x.Name).ToList(),
-                Milestone = issue.Milestone?.Name,
-                Status = issue.Status?.Name,
-                Sprint = issue.Sprint?.Name,
-                Area = issue.Area?.Name,
+                Milestone = issue.Milestone?.isDeleted == false ? issue.Milestone?.Name : null,
+                Status = issue.Status?.isDeleted == false ? issue.Status?.Name : null,
+                Sprint = issue.Sprint?.isDeleted == false ? issue.Sprint?.Name : null,
+                Area = issue.Area?.isDeleted == false ? issue.Area?.Name : null,
                 ProjectId = issue.ProjectId,
                 CreatedAt = DateTime.UtcNow,
                 Comments = issueComment?.Select(x=>new CommentModel { PostedAt = x.PostedAt, Author = x.Author.Email, Text = x.Content }).ToList() ?? new List<CommentModel>()

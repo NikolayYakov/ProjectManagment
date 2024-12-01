@@ -90,7 +90,7 @@ namespace ProjectManagment.Repositories
 
         public async Task<IQueryable<IssueLabelDTO>> GetIssueLabels(Guid issueId)
         {
-            return dbContext.LabelsToIssues.Where(x => x.IssueId == issueId && !x.IsRemoved).Select(x => new IssueLabelDTO { Id = x.LabelId, Name = x.Label.Name }) ;
+            return dbContext.LabelsToIssues.Where(x => x.IssueId == issueId && !x.IsRemoved && !x.Label.isDeleted).Select(x => new IssueLabelDTO { Id = x.LabelId, Name = x.Label.Name }) ;
         }
 
         public async Task<IQueryable<IssueAssigneeDTO>> GetIssueAssignees(Guid issueId)

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ProjectManagment.Areas.Identity.Data;
 using ProjectManagment.Attributes;
 using ProjectManagment.Data;
+using ProjectManagment.EmailService;
 using ProjectManagment.ReleaseNotesWriters;
 using ProjectManagment.Repositories;
 
@@ -28,6 +29,8 @@ namespace ProjectManagment
             builder.Services.AddTransient<ProjectOwnerAttribute>();
             builder.Services.AddTransient<XmlDocumentWriter>();
 
+            builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+            builder.Services.AddScoped<IEmailSender, EmailSender>();
 
             //swagger
             builder.Services.AddEndpointsApiExplorer();
